@@ -1,0 +1,611 @@
+[
+  {
+    "task_id": "T001",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a clear bug report in FastAPI",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/10370",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["bug"],
+      "must_contain": ["justification", "label"],
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["guessing without reading issue", "refusing to classify"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Wrong classification or no evidence cited",
+        "1": "Correct type but weak or generic justification",
+        "2": "Correct with specific evidence from issue body",
+        "3": "Correct, specific evidence, suggested labels, and confidence level"
+      }
+    }
+  },
+  {
+    "task_id": "T002",
+    "category": "happy_path",
+    "type": "duplicate",
+    "description": "Find duplicates for a common FastAPI CORS issue",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/1663",
+      "hint": "duplicate"
+    },
+    "success_criteria": {
+      "must_search": true,
+      "min_search_queries": 2,
+      "must_reference_existing_issues": true,
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue", "search_similar_issues"],
+    "forbidden_behaviors": ["inventing issue numbers not found by search"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "No search performed or invented duplicates",
+        "1": "Searched but concluded without evidence",
+        "2": "Found related issues and compared them",
+        "3": "Multiple search queries, clear reasoning about true vs related duplicates"
+      }
+    }
+  },
+  {
+    "task_id": "T003",
+    "category": "happy_path",
+    "type": "code_area",
+    "description": "Identify code area for a FastAPI dependency injection bug",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/5920",
+      "hint": "code_area"
+    },
+    "success_criteria": {
+      "must_identify_module": true,
+      "must_reference_issue_content": true,
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue", "fetch_url"],
+    "forbidden_behaviors": ["guessing file paths not mentioned in issue"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "No module identified or pure guessing",
+        "1": "Generic area identified (e.g. 'routing') without specifics",
+        "2": "Specific module/component identified with reasoning",
+        "3": "Specific path or component, high confidence, supported by issue text"
+      }
+    }
+  },
+  {
+    "task_id": "T004",
+    "category": "happy_path",
+    "type": "stale",
+    "description": "Analyze a stale Flask issue open for 2+ years",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/4179",
+      "hint": "stale"
+    },
+    "success_criteria": {
+      "must_check_dates": true,
+      "must_recommend_action": true,
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue", "fetch_url"],
+    "forbidden_behaviors": ["closing as stale without reading comments"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "No date analysis or no recommendation",
+        "1": "Noted it is old but no actionable recommendation",
+        "2": "Analyzed activity, gave specific recommendation",
+        "3": "Full analysis: dates, comments, blocking questions, concrete next step"
+      }
+    }
+  },
+  {
+    "task_id": "T005",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a feature request in Requests library",
+    "input": {
+      "issue_url": "https://github.com/psf/requests/issues/6109",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["feature"],
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["classifying as bug without evidence"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Wrong type",
+        "1": "Correct type, no justification",
+        "2": "Correct type with justification",
+        "3": "Correct type, cites specific request from issue, suggests labels"
+      }
+    }
+  },
+  {
+    "task_id": "T006",
+    "category": "happy_path",
+    "type": "duplicate",
+    "description": "Find duplicates for httpx timeout issue",
+    "input": {
+      "issue_url": "https://github.com/encode/httpx/issues/2397",
+      "hint": "duplicate"
+    },
+    "success_criteria": {
+      "must_search": true,
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue", "search_similar_issues"],
+    "forbidden_behaviors": ["inventing issue numbers"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "No search or invented issues",
+        "1": "Searched, inconclusive without evidence",
+        "2": "Found related issues",
+        "3": "Multiple strategies, clear duplicate/not-duplicate verdict with evidence"
+      }
+    }
+  },
+  {
+    "task_id": "T007",
+    "category": "happy_path",
+    "type": "code_area",
+    "description": "Identify code area for httpx SSL verification issue",
+    "input": {
+      "issue_url": "https://github.com/encode/httpx/issues/2714",
+      "hint": "code_area"
+    },
+    "success_criteria": {
+      "must_identify_module": true,
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["guessing without reading issue"],
+    "scoring": {"max_points": 3, "rubric": {"0": "No module", "1": "Generic", "2": "Specific module", "3": "Specific + evidence"}}
+  },
+  {
+    "task_id": "T008",
+    "category": "happy_path",
+    "type": "stale",
+    "description": "Analyze stale Requests issue about proxy support",
+    "input": {
+      "issue_url": "https://github.com/psf/requests/issues/5811",
+      "hint": "stale"
+    },
+    "success_criteria": {
+      "must_check_dates": true,
+      "must_recommend_action": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": [],
+    "scoring": {"max_points": 3, "rubric": {"0": "No analysis", "1": "Partial", "2": "Good", "3": "Full with recommendation"}}
+  },
+  {
+    "task_id": "T009",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a documentation issue in Flask",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/5153",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["documentation", "docs"],
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["classifying as bug"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Wrong", "1": "Correct no reason", "2": "Correct with reason", "3": "Full analysis"}}
+  },
+  {
+    "task_id": "T010",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a performance issue in SQLModel",
+    "input": {
+      "issue_url": "https://github.com/tiangolo/sqlmodel/issues/215",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["bug", "performance"],
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": [],
+    "scoring": {"max_points": 3, "rubric": {"0": "Wrong", "1": "Correct no reason", "2": "Good", "3": "Excellent"}}
+  },
+  {
+    "task_id": "T011",
+    "category": "happy_path",
+    "type": "duplicate",
+    "description": "Detect duplicate FastAPI middleware issue",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/2205",
+      "hint": "duplicate"
+    },
+    "success_criteria": {"must_search": true, "grounding_required": true},
+    "expected_tools": ["fetch_github_issue", "search_similar_issues"],
+    "forbidden_behaviors": ["inventing issues"],
+    "scoring": {"max_points": 3, "rubric": {"0": "No search", "1": "Searched inconclusive", "2": "Found related", "3": "Clear verdict"}}
+  },
+  {
+    "task_id": "T012",
+    "category": "happy_path",
+    "type": "code_area",
+    "description": "Identify code area for Flask-Login issue",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/4999",
+      "hint": "code_area"
+    },
+    "success_criteria": {"must_identify_module": true},
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["guessing arbitrary paths"],
+    "scoring": {"max_points": 3, "rubric": {"0": "None", "1": "Generic", "2": "Specific", "3": "Specific + confident"}}
+  },
+  {
+    "task_id": "T013",
+    "category": "ambiguous",
+    "type": "classify",
+    "description": "Issue with very minimal description — agent should request more info or acknowledge uncertainty",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/10001",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_acknowledge_uncertainty": true,
+      "must_not_hallucinate": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["confidently classifying with no evidence", "hallucinating issue content"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Hallucinated classification with no evidence",
+        "1": "Classified but ignored lack of information",
+        "2": "Noted insufficient info, gave tentative classification",
+        "3": "Explicitly noted uncertainty, asked for more info or gave low-confidence result"
+      }
+    }
+  },
+  {
+    "task_id": "T014",
+    "category": "ambiguous",
+    "type": "classify",
+    "description": "Issue title says 'bug' but body is a feature request — agent must read body carefully",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/4050",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_read_body": true,
+      "reasoning_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["classifying based on title only"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Title-only", "1": "Read body, wrong conclusion", "2": "Correct with reasoning", "3": "Excellent analysis of title vs body mismatch"}}
+  },
+  {
+    "task_id": "T015",
+    "category": "ambiguous",
+    "type": "classify",
+    "description": "Issue that could be either a bug or a documentation gap",
+    "input": {
+      "issue_url": "https://github.com/encode/httpx/issues/1855",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_note_ambiguity": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["forcing a single confident answer without noting ambiguity"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Forced answer, no nuance", "1": "Chose one, brief mention of other", "2": "Discussed both options", "3": "Full nuanced analysis with suggested labels for both interpretations"}}
+  },
+  {
+    "task_id": "T016",
+    "category": "ambiguous",
+    "type": "stale",
+    "description": "Issue that is old but has recent activity — agent should NOT mark as stale",
+    "input": {
+      "issue_url": "https://github.com/psf/requests/issues/6478",
+      "hint": "stale"
+    },
+    "success_criteria": {
+      "must_check_recent_activity": true,
+      "must_not_blindly_mark_stale": true
+    },
+    "expected_tools": ["fetch_github_issue", "fetch_url"],
+    "forbidden_behaviors": ["marking active issues as stale without checking dates"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Marked stale without checking", "1": "Checked dates only", "2": "Checked comments", "3": "Full activity analysis, correctly not marking stale"}}
+  },
+  {
+    "task_id": "T017",
+    "category": "ambiguous",
+    "type": "duplicate",
+    "description": "Issue that looks like a duplicate but describes a different root cause",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/3555",
+      "hint": "duplicate"
+    },
+    "success_criteria": {
+      "must_compare_root_causes": true
+    },
+    "expected_tools": ["fetch_github_issue", "search_similar_issues"],
+    "forbidden_behaviors": ["marking as duplicate based on title match alone"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Title-match-only duplicate claim", "1": "Compared but incomplete", "2": "Good comparison", "3": "Clear root-cause comparison, correct non-duplicate verdict"}}
+  },
+  {
+    "task_id": "T018",
+    "category": "adversarial",
+    "type": "any",
+    "description": "Non-existent issue number — agent must handle 404 gracefully",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/9999999",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_report_not_found": true,
+      "must_not_hallucinate_issue_content": true,
+      "must_not_crash": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["hallucinating issue content", "crashing", "returning empty report without explanation"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Crashed or hallucinated issue content",
+        "1": "Returned error but no explanation",
+        "2": "Clearly reported issue not found",
+        "3": "Clear not-found report with helpful message"
+      }
+    }
+  },
+  {
+    "task_id": "T019",
+    "category": "adversarial",
+    "type": "any",
+    "description": "Invalid URL format — agent must validate and reject gracefully",
+    "input": {
+      "issue_url": "https://github.com/not-a-real-url",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_validate_url": true,
+      "must_not_crash": true
+    },
+    "expected_tools": [],
+    "forbidden_behaviors": ["crashing", "making API calls with invalid URL"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Crashed or made invalid API call",
+        "1": "Error but unclear message",
+        "2": "Clear validation error",
+        "3": "Clear error with explanation of expected format"
+      }
+    }
+  },
+  {
+    "task_id": "T020",
+    "category": "adversarial",
+    "type": "classify",
+    "description": "False premise: issue title claims 'Fixed in v1.0' but asking to triage it",
+    "input": {
+      "issue_url": "https://github.com/encode/httpx/issues/1234",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_check_issue_state": true,
+      "must_note_if_closed": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["triaging closed issue as if open", "ignoring issue state"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Ignored state", "1": "Noted state", "2": "Factored state into analysis", "3": "Full analysis noting closed state and its implications"}}
+  },
+  {
+    "task_id": "T021",
+    "category": "should_refuse",
+    "type": "out_of_scope",
+    "description": "Request to triage a PULL REQUEST URL (not an issue)",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/pull/10000",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_detect_pr": true,
+      "must_note_scope_limitation": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["treating PR as issue without noting the difference"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Treated as issue without noting",
+        "1": "Noted it's a PR but continued anyway",
+        "2": "Clearly noted scope mismatch",
+        "3": "Clear note + still provided useful info about the PR if available"
+      }
+    }
+  },
+  {
+    "task_id": "T022",
+    "category": "should_refuse",
+    "type": "out_of_scope",
+    "description": "Ask agent to close or modify the issue (agent should refuse action, only triage)",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/5000",
+      "hint": "close this issue as won't fix"
+    },
+    "success_criteria": {
+      "must_not_claim_to_close_issue": true,
+      "must_triage_only": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["claiming to close issue", "performing actions on GitHub"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Claimed to close issue",
+        "1": "Did not clarify it can't take action",
+        "2": "Noted it can only triage, not take action",
+        "3": "Clear scope explanation + provided the triage report anyway"
+      }
+    }
+  },
+  {
+    "task_id": "T023",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a security-related issue in Requests",
+    "input": {
+      "issue_url": "https://github.com/psf/requests/issues/5850",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["bug", "security"],
+      "must_flag_security": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["ignoring security implications"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Missed security flag", "1": "Noted security briefly", "2": "Flagged security with reasoning", "3": "Full security analysis with appropriate priority"}}
+  },
+  {
+    "task_id": "T024",
+    "category": "happy_path",
+    "type": "stale",
+    "description": "Analyze stale SQLModel issue with no maintainer response",
+    "input": {
+      "issue_url": "https://github.com/tiangolo/sqlmodel/issues/52",
+      "hint": "stale"
+    },
+    "success_criteria": {
+      "must_recommend_action": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": [],
+    "scoring": {"max_points": 3, "rubric": {"0": "No analysis", "1": "Partial", "2": "Good", "3": "Full with recommendation"}}
+  },
+  {
+    "task_id": "T025",
+    "category": "happy_path",
+    "type": "duplicate",
+    "description": "Find duplicates for a Flask session handling issue",
+    "input": {
+      "issue_url": "https://github.com/pallets/flask/issues/4765",
+      "hint": "duplicate"
+    },
+    "success_criteria": {
+      "must_search": true,
+      "min_search_queries": 1
+    },
+    "expected_tools": ["fetch_github_issue", "search_similar_issues"],
+    "forbidden_behaviors": ["inventing issues"],
+    "scoring": {"max_points": 3, "rubric": {"0": "No search", "1": "One search", "2": "Multiple searches", "3": "Multiple strategies + clear verdict"}}
+  },
+  {
+    "task_id": "T026",
+    "category": "ambiguous",
+    "type": "code_area",
+    "description": "Issue mentioning multiple unrelated components — agent must identify primary affected area",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/7143",
+      "hint": "code_area"
+    },
+    "success_criteria": {
+      "must_identify_primary_area": true,
+      "must_handle_multiple_mentions": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["listing all mentioned components as equally primary"],
+    "scoring": {"max_points": 3, "rubric": {"0": "No primary area", "1": "Listed all equally", "2": "Identified primary", "3": "Primary + secondary with reasoning"}}
+  },
+  {
+    "task_id": "T027",
+    "category": "happy_path",
+    "type": "classify",
+    "description": "Classify a question (not a bug) in httpx",
+    "input": {
+      "issue_url": "https://github.com/encode/httpx/issues/2100",
+      "hint": null
+    },
+    "success_criteria": {
+      "type_correct": ["question"],
+      "grounding_required": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["classifying question as bug"],
+    "scoring": {"max_points": 3, "rubric": {"0": "Wrong", "1": "Correct no reason", "2": "Correct + reason", "3": "Full analysis"}}
+  },
+  {
+    "task_id": "T028",
+    "category": "adversarial",
+    "type": "any",
+    "description": "Issue URL from a non-GitHub domain — agent must reject",
+    "input": {
+      "issue_url": "https://gitlab.com/some-org/some-repo/-/issues/1",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_reject_non_github": true
+    },
+    "expected_tools": [],
+    "forbidden_behaviors": ["attempting to triage non-GitHub issue", "making API calls to GitLab"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Attempted to triage",
+        "1": "Noted wrong domain but continued",
+        "2": "Clear rejection",
+        "3": "Clear rejection with explanation of scope (GitHub only)"
+      }
+    }
+  },
+  {
+    "task_id": "T029",
+    "category": "happy_path",
+    "type": "code_area",
+    "description": "Identify code area for a SQLModel relationship/ORM issue",
+    "input": {
+      "issue_url": "https://github.com/tiangolo/sqlmodel/issues/123",
+      "hint": "code_area"
+    },
+    "success_criteria": {
+      "must_identify_module": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": [],
+    "scoring": {"max_points": 3, "rubric": {"0": "None", "1": "Generic", "2": "Specific", "3": "Specific + evidence"}}
+  },
+  {
+    "task_id": "T030",
+    "category": "should_refuse",
+    "type": "out_of_scope",
+    "description": "Issue URL points to a comment on an issue (not the issue itself)",
+    "input": {
+      "issue_url": "https://github.com/fastapi/fastapi/issues/1500#issuecomment-12345",
+      "hint": null
+    },
+    "success_criteria": {
+      "must_handle_fragment": true,
+      "must_triage_parent_issue": true
+    },
+    "expected_tools": ["fetch_github_issue"],
+    "forbidden_behaviors": ["crashing on URL with fragment", "refusing to triage at all"],
+    "scoring": {
+      "max_points": 3,
+      "rubric": {
+        "0": "Crashed",
+        "1": "Confused by fragment",
+        "2": "Stripped fragment and triaged",
+        "3": "Noted fragment, stripped it, triaged parent issue correctly"
+      }
+    }
+  }
+]
