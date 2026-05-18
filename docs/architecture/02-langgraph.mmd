@@ -1,0 +1,37 @@
+%% LangGraph вузли та розвилки agent/graph.py + agent/nodes/router.py
+flowchart TD
+  START([START]) --> DEC[decompose_task]
+
+  DEC -->|route_after_decompose| OK1{URL OK?}
+  OK1 -->|так| FETCH[fetch_issue]
+  OK1 -->|ні / багато помилок| ERR1[error_sink]
+
+  FETCH --> PLAN[plan_node]
+  PLAN --> ROUTE[route_use_selector]
+
+  ROUTE -->|route_by_task_type| RT2{task_type / бюджет}
+  RT2 -->|duplicate| DUP[duplicate_point]
+  RT2 -->|code_area| CODE[code_area_point]
+  RT2 -->|stale| STALE[stale_point]
+  RT2 -->|classify| CLS[classify_point]
+  RT2 -->|budget| BUD[budget_sink]
+  RT2 -->|not_found| ERR1
+
+  DUP --> DRAFT[draft_answer]
+  CODE --> DRAFT
+  STALE --> DRAFT
+  CLS --> DRAFT
+
+  DRAFT --> VAL[grounding_validator]
+  VAL --> COMP[completion_check]
+
+  COMP -->|route_after_completion| RC{далі?}
+  RC -->|needs_more_info| ROUTE
+  RC -->|should_escalate| HIL[human_review]
+  HIL --> DRAFT
+  RC -->|успіх| ENDN([END])
+  RC -->|помилки / ліміти| ERR1
+  RC -->|force_end| BUD
+
+  ERR1 --> ENDN
+  BUD --> ENDN

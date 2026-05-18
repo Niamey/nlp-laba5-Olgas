@@ -1,0 +1,33 @@
+%% Флоу 0 — загальна архітектура (end-to-end, один рядок подумки)
+flowchart LR
+  subgraph IN["Вхід"]
+    U["Користувач / клієнт"]
+  end
+
+  subgraph ENTRY["Точка входу"]
+    E{{"CLI main.py\nабо\nHTTP api.py"}}
+  end
+
+  subgraph ORCH["Оркестрація"]
+    R["run_triage"]
+  end
+
+  subgraph PAR["Паралельні підсистеми"]
+    LG["LangGraph\nстан + вузли"]
+    MC["MCP\n2 процеси stdio"]
+  end
+
+  subgraph OUT["Вихід"]
+    REP["Звіт triage\n+ trajectory"]
+    APIJ["API: job_id\n→ poll result"]
+  end
+
+  U --> E
+  E --> R
+  R --> LG
+  R --> MC
+  LG <--> MC
+  LG --> REP
+  R --> REP
+  E --> APIJ
+  REP --> APIJ

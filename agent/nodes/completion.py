@@ -6,11 +6,121 @@ completion.py — вирішує done/more/escalate + human_review interrupt
 from __future__ import annotations
 import json
 import logging
+import re
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from agent.state import IssueTriageState
 from agent.llm import get_llm, SYSTEM_PROMPT
+import os
+
+# Достатньо тексту для драфтеру й валідатора (раніше 150/300 символів різало body issue → хибні FAIL)
+_MAX_TOOL_SUMMARY_CHARS = int(os.environ.get("TRIAGE_TOOL_SUMMARY_CHARS", "2500"))
+_MAX_VALIDATION_CHARS_PER_TOOL = int(os.environ.get("TRIAGE_GROUND_TOOL_CHARS", "12000"))
+_MAX_ISSUE_BODY_IN_GROUNDING = int(os.environ.get("TRIAGE_GROUND_ISSUE_BODY", "14000"))
+_MAX_TOTAL_GROUNDING_BLOB = int(os.environ.get("TRIAGE_GROUND_TOTAL", "52000"))
+_MAX_FINDINGS_IN_GROUNDING = int(os.environ.get("TRIAGE_GROUND_FINDINGS", "16000"))
 
 logger = logging.getLogger(__name__)
+
+
+def _clip_for_prompt(obj: object, max_chars: int) -> str:
+    if max_chars <= 0:
+        return ""
+    raw = obj if isinstance(obj, str) else json.dumps(obj, ensure_ascii=False, default=str)
+    if len(raw) <= max_chars:
+        return raw
+    return raw[: max_chars - 20] + "\n…[truncated]…"
+
+
+def _strip_code_fences(text: str) -> str:
+    t = text.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```(?:json)?\s*", "", t, flags=re.IGNORECASE)
+        t = re.sub(r"\s*```\s*$", "", t)
+    return t.strip()
+
+
+def _extract_first_json_object(text: str) -> str:
+    """Виділяє перший сбалансований {...} з відповіді LLM (текст до/після JSON ігнорується)."""
+    start = text.find("{")
+    if start < 0:
+        return text.strip()
+    depth = 0
+    for i, ch in enumerate(text[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    return text[start:].strip()
+
+
+def _coerce_bool(val: object, default: bool = False) -> bool:
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.strip().lower() in ("true", "1", "yes", "pass")
+    return default
+
+
+def _parse_validator_json(content: str) -> dict:
+    """Парсить JSON від grounding-LLM; кілька стратегій, бо відповідь часто з markdown/прологом."""
+    raw = _strip_code_fences(content)
+    last_err: Exception | None = None
+    for candidate in (raw, _extract_first_json_object(raw)):
+        if not candidate:
+            continue
+        try:
+            out = json.loads(candidate)
+        except json.JSONDecodeError as e:
+            last_err = e
+            continue
+        if isinstance(out, dict):
+            return out
+        last_err = TypeError("validator JSON root is not an object")
+    if isinstance(last_err, json.JSONDecodeError):
+        raise last_err
+    if last_err is not None:
+        raise last_err
+    raise json.JSONDecodeError("Could not parse validator JSON", raw or "", 0)
+
+
+def _build_ground_truth_blob(state: IssueTriageState) -> str:
+    """Повний контекст для валідації: triage_findings + tool results + body issue."""
+    parts: list[str] = []
+
+    findings = state.get("triage_findings")
+    if findings:
+        parts.append(
+            "[triage_findings] (structured output from workers — same pipeline as the report):\n"
+            + _clip_for_prompt(findings, _MAX_FINDINGS_IN_GROUNDING)
+        )
+
+    for r in state.get("tool_results", []):
+        name = r.get("tool", "?")
+        payload = r.get("result", "")
+        chunk = _clip_for_prompt(payload, _MAX_VALIDATION_CHARS_PER_TOOL)
+        parts.append(f"[{name}]:\n{chunk}")
+
+    issue = state.get("fetched_issue") or {}
+    if issue and not issue.get("error") and issue.get("message") != "Not Found":
+        slim = {
+            "number": issue.get("number"),
+            "title": issue.get("title"),
+            "state": issue.get("state"),
+            "body": (issue.get("body") or "")[:_MAX_ISSUE_BODY_IN_GROUNDING],
+            "labels": [l.get("name") for l in issue.get("labels") or [] if isinstance(l, dict)],
+            "comments": issue.get("comments"),
+            "user": (issue.get("user") or {}).get("login") if isinstance(issue.get("user"), dict) else None,
+            "created_at": issue.get("created_at"),
+            "updated_at": issue.get("updated_at"),
+        }
+        parts.append("[fetched_issue_canonical]:\n" + json.dumps(slim, ensure_ascii=False, default=str))
+
+    blob = "\n\n---\n\n".join(parts) if parts else "No tool results"
+    if len(blob) > _MAX_TOTAL_GROUNDING_BLOB:
+        return blob[: _MAX_TOTAL_GROUNDING_BLOB - 30] + "\n…[grounding blob truncated]…"
+    return blob
 
 
 # ══════════════════════════════════════════════════════
@@ -33,6 +143,7 @@ Write a triage report with these sections:
 4. **Labels** — suggested GitHub labels (comma-separated)
 
 IMPORTANT: Only include facts that appear in the tool results above. Mark uncertain claims with [UNCERTAIN].
+Use plain **markdown** only. Do NOT wrap the entire report in a ```json``` or ``` code fence.
 Max 300 words."""
 
 
@@ -42,9 +153,9 @@ async def draft_answer(state: IssueTriageState) -> dict:
 
     findings_json = json.dumps(state.get("triage_findings", {}), indent=2)
 
-    # Компактне summary tool results
+    # Компактне summary tool results (повинно містити ключові цитати/факти, не обрізати issue до заголовка)
     tool_summary = "\n".join(
-        f"- {r['tool']}: {str(r.get('result', ''))[:150]}"
+        f"- {r['tool']}: {_clip_for_prompt(r.get('result', ''), _MAX_TOOL_SUMMARY_CHARS)}"
         for r in state.get("tool_results", [])
     ) or "No tool results available"
 
@@ -58,7 +169,7 @@ async def draft_answer(state: IssueTriageState) -> dict:
         ))
     ])
 
-    report = response.content.strip()
+    report = _strip_code_fences(response.content.strip())
     logger.info("Draft report: %d chars", len(report))
 
     return {
@@ -71,20 +182,23 @@ async def draft_answer(state: IssueTriageState) -> dict:
 # GROUNDING VALIDATOR
 # ══════════════════════════════════════════════════════
 
-GROUNDING_PROMPT = """You are a grounding validator. Check if the triage report only contains 
-claims that are supported by the tool results provided.
+GROUNDING_PROMPT = """You are a grounding validator. The TOOL RESULTS block is the only ground truth.
 
 TRIAGE REPORT:
 {report}
 
-TOOL RESULTS (ground truth):
+TOOL RESULTS (ground truth — includes triage_findings, full tool payloads, and issue title/body when fetched):
 {tool_results}
 
-Check each factual claim in the report:
-- Does it appear in the tool results?
-- Or is it an ungrounded hallucination?
+Rules:
+- The [triage_findings] section is part of ground truth: if the report repeats issue type, confidence, priority, or reasoning that appears there OR in the issue body OR in tool payloads, it is GROUNDED (even if phrased differently).
+- Paraphrases and summaries of facts that ARE present in the tool results count as GROUNDED.
+- Obvious logical consequences of stated facts (e.g. "likely a support question" when maintainers said so) are GROUNDED if tied to quoted/stated evidence.
+- Mark as UNGROUNDED only if the report states specific facts, numbers, usernames, file paths, error messages, or timelines that do NOT appear in the blocks above (hallucination / invention).
+- Sections like **Labels** are suggestions: label names need not appear verbatim in tools if they are reasonable interpretations of the described issue.
 
-Return JSON:
+Return ONLY one JSON object (strict JSON: lowercase true/false/null, double-quoted keys). No markdown fences, no text before or after the JSON.
+
 {{
   "grounding_passed": true|false,
   "ungrounded_claims": ["claim1", "claim2"],
@@ -92,7 +206,7 @@ Return JSON:
   "verdict": "PASS|FAIL"
 }}
 
-PASS only if there are zero ungrounded claims."""
+PASS (grounding_passed true) only if there are zero ungrounded claims by the rules above."""
 
 
 async def grounding_validator(state: IssueTriageState) -> dict:
@@ -107,22 +221,9 @@ async def grounding_validator(state: IssueTriageState) -> dict:
             "messages": [AIMessage(content="No report to validate")],
         }
 
-    # Компілюємо ground truth
-    tool_results_text = "\n".join(
-        f"[{r['tool']}]: {json.dumps(r.get('result', ''))[:300]}"
-        for r in state.get("tool_results", [])
-    ) or "No tool results"
+    tool_results_text = _build_ground_truth_blob(state)
 
-    # Також включаємо fetched issue як ground truth
-    issue = state.get("fetched_issue") or {}
-    if issue:
-        tool_results_text += (
-            f"\n[fetch_github_issue]: title={issue.get('title')} "
-            f"state={issue.get('state')} "
-            f"labels={[l['name'] for l in issue.get('labels', [])]}"
-        )
-
-    llm = get_llm()
+    llm = get_llm(temperature=0.0)
     response = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=GROUNDING_PROMPT.format(
@@ -132,23 +233,39 @@ async def grounding_validator(state: IssueTriageState) -> dict:
     ])
 
     try:
-        raw = response.content.strip().lstrip("```json").rstrip("```").strip()
-        result = json.loads(raw)
-        passed = result.get("grounding_passed", False)
-        ungrounded = result.get("ungrounded_claims", [])
+        result = _parse_validator_json(response.content)
+        passed = _coerce_bool(result.get("grounding_passed"), False)
+        verdict = str(result.get("verdict") or "").strip().upper()
+        if verdict == "FAIL":
+            passed = False
+        ungrounded = result.get("ungrounded_claims") or []
+        if not isinstance(ungrounded, list):
+            ungrounded = []
 
-        if not passed and ungrounded:
-            # Пробуємо виправити звіт — помічаємо спірні твердження
+        if not passed:
             fixed_report = state["triage_report"]
             for claim in ungrounded[:3]:
-                fixed_report = fixed_report.replace(claim, f"[UNCERTAIN: {claim}]")
+                if isinstance(claim, str) and claim.strip():
+                    fixed_report = fixed_report.replace(claim, f"[UNCERTAIN: {claim}]")
 
-            logger.warning("Grounding FAILED — %d ungrounded claims", len(ungrounded))
+            logger.warning(
+                "Grounding FAILED — passed=%s, ungrounded=%s",
+                passed,
+                ungrounded[:5],
+            )
             return {
                 "grounding_passed": False,
                 "triage_report": fixed_report,
                 "should_escalate": result.get("hallucination_risk") == "high",
-                "messages": [AIMessage(content=f"Grounding FAILED: {ungrounded[:3]}")],
+                "messages": [
+                    AIMessage(
+                        content=(
+                            f"Grounding FAILED: {ungrounded[:3]}"
+                            if ungrounded
+                            else "Grounding FAILED (validator marked fail with no claim list)"
+                        )
+                    )
+                ],
             }
 
         logger.info("Grounding PASSED")
@@ -157,11 +274,19 @@ async def grounding_validator(state: IssueTriageState) -> dict:
             "messages": [AIMessage(content="Grounding validation PASSED")],
         }
 
-    except (json.JSONDecodeError, KeyError) as e:
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+        # Чесно: без валідного JSON від валідатора автоматично підтвердити grounding неможливо
         logger.warning("Validator parse error: %s", e)
         return {
-            "grounding_passed": True,   # benefit of doubt якщо validator сам зламався
-            "messages": [AIMessage(content=f"Validator parse error ({e}), assuming pass")],
+            "grounding_passed": False,
+            "messages": [
+                AIMessage(
+                    content=(
+                        f"Grounding validator returned non-JSON or invalid output ({e!s}); "
+                        "grounding_passed=false (inconclusive — re-run or inspect report manually)"
+                    )
+                )
+            ],
         }
 
 

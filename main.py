@@ -74,6 +74,9 @@ async def run_triage(
     logger.info("Starting triage: %s (run_id=%s)", issue_url, run_id)
     start_ts = datetime.now()
 
+    # Два MCP-процеси stdio — див. таблицю в `agent/mcp_config.py` та `MCP_SERVERS_OVERVIEW`:
+    #   1) github_triage → mcp_server/server.py (завжди)
+    #   2) fetch         → FETCH_MCP_* з .env (mcp-server-fetch), опційно
     # langchain-mcp-adapters ≥0.1.0: MultiServerMCPClient is not an async context manager.
     mcp_client = MultiServerMCPClient(mcp_config_for_main())
     logger.info("Loading tools from MCP servers (can take 30–120s on cold start)...")
@@ -153,6 +156,22 @@ async def main():
         action="store_true",
         help="Показати MCP-сервери й тулі з описами, вийти",
     )
+    parser.add_argument(
+        "--metrics-help",
+        action="store_true",
+        help="Пояснення метрик evaluation (друк у консоль, без запуску)",
+    )
+    parser.add_argument(
+        "--examples",
+        action="store_true",
+        help="Приклади issue URL з evaluation/tasks.json за типом (classify, duplicate, …)",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Разом з --eval: після кожної задачі друкувати reasons/demerits і grounding",
+    )
     args = parser.parse_args()
 
     if args.list_mcp:
@@ -161,9 +180,21 @@ async def main():
         await print_mcp_inventory()
         return
 
+    if args.metrics_help:
+        from evaluation.runner import print_metrics_help
+
+        print_metrics_help()
+        return
+
+    if args.examples:
+        from evaluation.runner import print_issue_type_examples
+
+        print_issue_type_examples()
+        return
+
     if args.eval:
         from evaluation.runner import run_evaluation
-        await run_evaluation(output_dir=args.output)
+        await run_evaluation(output_dir=args.output, verbose=args.verbose)
         return
 
     if not args.url:
@@ -190,7 +221,12 @@ async def main():
     print(result["report"])
     print("\n" + "─" * 60)
     t = result["trajectory"]
-    print(f"Task: {t['task_type']} | Tools: {t['tool_calls']} | Time: {t['duration_s']}s")
+    gp = t.get("grounding_passed")
+    gp_str = "yes" if gp is True else ("no" if gp is False else "n/a")
+    print(
+        f"Task: {t['task_type']} | Tools: {t['tool_calls']} | "
+        f"Grounding: {gp_str} | Time: {t['duration_s']}s"
+    )
     print(f"Trajectory saved: {traj_file}")
 
 

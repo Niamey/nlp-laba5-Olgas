@@ -1,0 +1,7 @@
+%% Власний MCP-сервер github_triage mcp_server/server.py
+flowchart LR
+  SRV["MCP github_triage server.py"] --> T1[fetch_github_issue]
+  SRV --> T2[fetch_url]
+  SRV --> T3[search_similar_issues]
+  SRV --> T4[save_triage_note]
+  SRV --> T5[get_triage_notes]

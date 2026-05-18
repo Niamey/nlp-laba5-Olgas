@@ -1,0 +1,36 @@
+%% Флоу MCP (підключення, процеси, тулі в агенті)
+flowchart TB
+  subgraph CFG["Конфігурація"]
+    MC["agent/mcp_config.py\nbuild_mcp_connections"]
+  end
+
+  subgraph P1["Процес 1 stdio"]
+    GH["github_triage\nmcp_server/server.py\nFastMCP"]
+    T1["fetch_github_issue"]
+    T2["fetch_url"]
+    T3["search_similar_issues"]
+    T4["save / get triage notes"]
+    GH --> T1
+    GH --> T2
+    GH --> T3
+    GH --> T4
+  end
+
+  subgraph P2["Процес 2 stdio опційно"]
+    FX["fetch\nmcp-server-fetch"]
+    TF["інструмент fetch\nHTTP → markdown"]
+    FX --> TF
+  end
+
+  subgraph CL["Клієнт у Python"]
+    MSC["MultiServerMCPClient\nmain.py run_triage"]
+    CTX["set_mcp_tools\nagent/mcp_tools_context.py"]
+    NODE["Вузли графа\nвикликають тулі по імені"]
+  end
+
+  MC --> MSC
+  MSC --> GH
+  MSC --> FX
+  MSC -->|"get_tools"| CTX
+  CTX --> NODE
+  NODE -->|"результати"| CTX

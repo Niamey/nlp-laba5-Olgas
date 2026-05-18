@@ -27,6 +27,8 @@ python scripts/mcp_inventory.py
 
 ## 3. Демо: референс → свій issue
 
+Чернетка сценарію з конкретними тікетами (T001, T002, …) і що на кожному кроці показати: **[DEMO_TICKETS_UA.md](DEMO_TICKETS_UA.md)**.
+
 **Референс (проєктний приклад):**
 
 ```bash
@@ -61,8 +63,8 @@ python main.py --eval --output trajectories
 
 Після завершення:
 
-- зведення в **`trajectories/summary.json`** (`score_pct`, `pass_rate`, `avg_latency_s`, `avg_tool_calls`, `by_category`, `tool_usage`);
-- друк у консолі блоку **EVALUATION COMPLETE**.
+- зведення в **`trajectories/summary.json`** (`score_pct`, `pass_rate`, `avg_latency_s`, `avg_tool_calls`, `by_category`, `tool_usage`, а також **`grounding`**, **`token_usage_est_total`**, **`error_tasks`**);
+- друк у консолі блоку **EVALUATION COMPLETE** (ті самі метрики + grounding + токени + crash-и, якщо були).
 
 Перегляд summary у зручному вигляді:
 

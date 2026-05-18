@@ -1,0 +1,42 @@
+%% GitHub Triage Agent — загальна архітектура (клієнт → API → агент → MCP)
+flowchart TB
+  subgraph clients["Клієнти"]
+    CLI["CLI: main.py"]
+    HTTP["HTTP: FastAPI api.py"]
+    SW["Swagger / curl"]
+  end
+
+  subgraph api["Веб-шар"]
+    FAPI["FastAPI: /health, POST /triage, GET /triage/{id}"]
+    JOBS["In-memory _jobs"]
+  end
+
+  subgraph core["Ядро агента"]
+    RT["run_triage: MCP client, graph.ainvoke"]
+    G["LangGraph: build_graph"]
+    ST["IssueTriageState"]
+  end
+
+  subgraph mcp["MCP stdio"]
+    GH["github_triage: mcp_server/server.py"]
+    FX["fetch: mcp-server-fetch"]
+  end
+
+  subgraph ext["Зовнішні сервіси"]
+    GHA["GitHub API"]
+    LLM["LLM Gemini LangChain"]
+  end
+
+  CLI --> RT
+  SW --> FAPI
+  HTTP --> FAPI
+  FAPI --> JOBS
+  FAPI -->|"BackgroundTasks"| RT
+  RT --> G
+  G --- ST
+  RT -->|"MultiServerMCPClient"| GH
+  RT --> FX
+  GH --> GHA
+  FX -.->|"HTTP"| ext
+  G --> LLM
+  RT -->|"fallback github_direct"| GHA

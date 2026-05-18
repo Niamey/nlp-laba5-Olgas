@@ -99,6 +99,8 @@ python -m evaluation.ablations --ablation graph
 
 ### 6. HTTP API
 
+Приклади **CLI**, потім **HTTP JSON** для кожного типу тріажу: **[docs/API_TRIAGE_REQUESTS_UA.md](docs/API_TRIAGE_REQUESTS_UA.md)**.
+
 ```bash
 uvicorn api:app --port 8080
 

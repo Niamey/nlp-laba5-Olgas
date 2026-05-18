@@ -1,0 +1,31 @@
+%% Флоу LangChain / LangGraph (без деталей MCP-процесів)
+flowchart TB
+  subgraph LC["LangChain"]
+    LLM["ChatGoogleGenerativeAI\nagent/llm.py"]
+    MSG["Повідомлення\nSystem / Human / AI / Tool"]
+  end
+
+  subgraph LG["LangGraph agent/graph.py"]
+    S0["initial_state\nagent/state.py"]
+    DEC["decompose_task"]
+    FETCHISSUE["fetch_issue"]
+    PL["plan_node"]
+    RT["router\nroute_*"]
+    WK["workers\nduplicate / code_area\nstale / classify"]
+    DR["draft_answer"]
+    GV["grounding_validator"]
+    CC["completion_check"]
+    HR["human_review\nопційно HIL"]
+    END([END])
+    S0 --> DEC --> FETCHISSUE --> PL --> RT
+    RT --> WK --> DR --> GV --> CC
+    CC -->|loop| RT
+    CC -->|HIL| HR
+    HR --> DR
+    CC -->|done| END
+  end
+
+  LLM -.->|"ainvoke"| PL
+  LLM -.-> DR
+  LLM -.-> GV
+  MSG --- LG

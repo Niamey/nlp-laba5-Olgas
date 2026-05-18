@@ -2,6 +2,9 @@
 """
 GitHub Triage MCP Server — власний MCP сервер (окремий процес).
 
+У конфігурації агента (`agent/mcp_config.py`) цей файл підключений під ключем **github_triage**
+(перший з двох MCP; другий — опційний **fetch** з пакета mcp-server-fetch, без цього репо).
+
 Запуск:
     python mcp_server/server.py
 
