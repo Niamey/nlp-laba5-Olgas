@@ -8,6 +8,9 @@ import logging
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 
+from agent.llm_messages import aimessage_from_llm
+from agent.issue_types import normalize_issue_type
+from agent.user_instructions import user_instructions_block
 from agent.state import IssueTriageState
 from agent.llm import get_llm, SYSTEM_PROMPT
 from agent.mcp_tools_context import get_mcp_tools
@@ -81,6 +84,10 @@ def _parse_fetch_url_response(
         return out
 
     return None
+
+
+def _worker_prompt(base: str, state: IssueTriageState) -> str:
+    return base + user_instructions_block(state)
 
 
 def _issue_summary(state: IssueTriageState) -> str:
@@ -169,14 +176,15 @@ async def duplicate_point(state: IssueTriageState, config: RunnableConfig) -> di
 
     analysis = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=(
+        HumanMessage(content=_worker_prompt(
             f"Analyze if this issue is a duplicate:\n\n"
             f"{_issue_summary(state)}\n\n"
             f"Potentially similar issues found:\n{similar_text}\n\n"
             f"For each similar issue, determine if it's a true duplicate, related, or different.\n"
             f"Return JSON: {{\"is_duplicate\": bool, \"duplicate_of\": number_or_null, "
             f"\"confidence\": \"high|medium|low\", \"related_issues\": [list of numbers], "
-            f"\"reasoning\": \"explanation\"}}"
+            f"\"reasoning\": \"explanation\"}}",
+            state,
         ))
     ])
 
@@ -191,7 +199,7 @@ async def duplicate_point(state: IssueTriageState, config: RunnableConfig) -> di
         "tool_results": state["tool_results"] + new_tool_results,
         "tool_calls_count": state["tool_calls_count"] + len(new_tool_results),
         "triage_findings": {**state.get("triage_findings", {}), "duplicate_analysis": findings},
-        "messages": [AIMessage(content=f"Duplicate analysis: {json.dumps(findings, indent=2)}")],
+        "messages": [aimessage_from_llm(f"Duplicate analysis: {json.dumps(findings, indent=2)}", analysis)],
     }
 
 
@@ -239,7 +247,7 @@ async def code_area_point(state: IssueTriageState, config: RunnableConfig) -> di
     # LLM визначає code area
     analysis = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=(
+        HumanMessage(content=_worker_prompt(
             f"Identify the code area affected by this issue.\n\n"
             f"{_issue_summary(state)}\n\n"
             f"Repository Python files:\n{repo_info or 'not available'}\n\n"
@@ -249,7 +257,8 @@ async def code_area_point(state: IssueTriageState, config: RunnableConfig) -> di
             f"- Confidence level\n\n"
             f"Return JSON: {{\"affected_modules\": [\"path1\", \"path2\"], "
             f"\"component\": \"name\", \"confidence\": \"high|medium|low\", "
-            f"\"reasoning\": \"explanation\"}}"
+            f"\"reasoning\": \"explanation\"}}",
+            state,
         ))
     ])
 
@@ -264,7 +273,7 @@ async def code_area_point(state: IssueTriageState, config: RunnableConfig) -> di
         "tool_results": state["tool_results"] + new_results,
         "tool_calls_count": state["tool_calls_count"] + len(new_results) + 1,
         "triage_findings": {**state.get("triage_findings", {}), "code_area": findings},
-        "messages": [AIMessage(content=f"Code area: {json.dumps(findings, indent=2)}")],
+        "messages": [aimessage_from_llm(f"Code area: {json.dumps(findings, indent=2)}", analysis)],
     }
 
 
@@ -312,7 +321,7 @@ async def stale_point(state: IssueTriageState, config: RunnableConfig) -> dict:
 
     analysis = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=(
+        HumanMessage(content=_worker_prompt(
             f"Analyze this stale GitHub issue:\n\n"
             f"{_issue_summary(state)}\n"
             f"Created: {issue.get('created_at', 'N/A')}\n"
@@ -325,7 +334,8 @@ async def stale_point(state: IssueTriageState, config: RunnableConfig) -> dict:
             f"Return JSON: {{\"still_relevant\": bool, \"blocking_reason\": \"string\", "
             f"\"outstanding_questions\": [\"q1\", \"q2\"], "
             f"\"recommended_action\": \"close|ping_author|needs_pr|needs_info|keep_open\", "
-            f"\"reasoning\": \"explanation\"}}"
+            f"\"reasoning\": \"explanation\"}}",
+            state,
         ))
     ])
 
@@ -339,7 +349,7 @@ async def stale_point(state: IssueTriageState, config: RunnableConfig) -> dict:
         "tool_results": state["tool_results"] + new_results,
         "tool_calls_count": state["tool_calls_count"] + len(new_results) + 1,
         "triage_findings": {**state.get("triage_findings", {}), "stale_analysis": findings},
-        "messages": [AIMessage(content=f"Stale analysis: {json.dumps(findings, indent=2)}")],
+        "messages": [aimessage_from_llm(f"Stale analysis: {json.dumps(findings, indent=2)}", analysis)],
     }
 
 
@@ -360,7 +370,7 @@ async def classify_point(state: IssueTriageState, config: RunnableConfig) -> dic
 
     analysis = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=(
+        HumanMessage(content=_worker_prompt(
             f"Classify this GitHub issue:\n\n"
             f"{_issue_summary(state)}\n\n"
             f"Current labels: {[l['name'] for l in issue.get('labels', [])]}\n\n"
@@ -370,7 +380,12 @@ async def classify_point(state: IssueTriageState, config: RunnableConfig) -> dic
             f"- Confidence: high | medium | low\n\n"
             f"Return JSON: {{\"type\": \"...\", \"priority\": \"...\", "
             f"\"confidence\": \"...\", \"suggested_labels\": [\"l1\", \"l2\"], "
-            f"\"justification\": \"cite specific content from the issue\"}}"
+            f"\"justification\": \"cite specific content from the issue\"}}\n\n"
+            f"Rules:\n"
+            f"- \"type\" MUST be exactly one of: bug, feature, question, documentation, duplicate (lowercase).\n"
+            f"- In \"justification\", quote or paraphrase concrete phrases from the issue title/body that support the type.\n"
+            f"- If uncertain, set confidence to \"low\" and pick the closest type; do not invent issue facts.",
+            state,
         ))
     ])
 
@@ -379,6 +394,12 @@ async def classify_point(state: IssueTriageState, config: RunnableConfig) -> dic
         findings = json.loads(raw)
     except Exception:
         findings = {"type": "question", "reasoning": analysis.content, "confidence": "low"}
+
+    if not isinstance(findings, dict):
+        findings = {"type": "question", "reasoning": str(findings), "confidence": "low"}
+    nt = normalize_issue_type(str(findings.get("type") or ""))
+    if nt:
+        findings["type"] = nt
 
     # Зберігаємо нотатку в MCP (local bookkeeping)
     if save_tool:
@@ -399,7 +420,7 @@ async def classify_point(state: IssueTriageState, config: RunnableConfig) -> dic
         "tool_results": state["tool_results"] + new_results,
         "tool_calls_count": state["tool_calls_count"] + len(new_results),
         "triage_findings": {**state.get("triage_findings", {}), "classification": findings},
-        "messages": [AIMessage(content=f"Classification: {json.dumps(findings, indent=2)}")],
+        "messages": [aimessage_from_llm(f"Classification: {json.dumps(findings, indent=2)}", analysis)],
     }
 
 

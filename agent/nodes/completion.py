@@ -6,18 +6,32 @@ completion.py — вирішує done/more/escalate + human_review interrupt
 from __future__ import annotations
 import json
 import logging
+import os
 import re
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from agent.llm_messages import aimessage_from_llm
+from agent.user_instructions import user_instructions_block
 from agent.state import IssueTriageState
 from agent.llm import get_llm, SYSTEM_PROMPT
-import os
+from agent.fact_extractor import (
+    FactCheckResult,
+    check_facts_against_blob,
+    format_fact_check_warning,
+)
 
-# Достатньо тексту для драфтеру й валідатора (раніше 150/300 символів різало body issue → хибні FAIL)
+# Достатньо тексту для драфтеру й валідатора (короткий tool_summary → хибні FAIL grounding)
 _MAX_TOOL_SUMMARY_CHARS = int(os.environ.get("TRIAGE_TOOL_SUMMARY_CHARS", "2500"))
 _MAX_VALIDATION_CHARS_PER_TOOL = int(os.environ.get("TRIAGE_GROUND_TOOL_CHARS", "12000"))
 _MAX_ISSUE_BODY_IN_GROUNDING = int(os.environ.get("TRIAGE_GROUND_ISSUE_BODY", "14000"))
-_MAX_TOTAL_GROUNDING_BLOB = int(os.environ.get("TRIAGE_GROUND_TOTAL", "52000"))
 _MAX_FINDINGS_IN_GROUNDING = int(os.environ.get("TRIAGE_GROUND_FINDINGS", "16000"))
+_MAX_TOTAL_GROUNDING_BLOB = int(os.environ.get("TRIAGE_GROUND_TOTAL", "52000"))
+
+# Regex fact-checker: поріг pass = частка факт-збігів у звіті, що знайдені в blob.
+_FACT_CHECK_THRESHOLD = float(os.environ.get("TRIAGE_FACT_CHECK_THRESHOLD", "0.8"))
+# Двопрохідна LLM-перевірка (другий LLM з іншим промптом). Default off (cost).
+_DOUBLE_GROUNDING = os.environ.get("TRIAGE_DOUBLE_GROUNDING", "0").strip().lower() in (
+    "1", "true", "yes", "on",
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +54,7 @@ def _strip_code_fences(text: str) -> str:
 
 
 def _extract_first_json_object(text: str) -> str:
-    """Виділяє перший сбалансований {...} з відповіді LLM (текст до/після JSON ігнорується)."""
+    """Виділяє перший сбалансований {...} з відповіді LLM."""
     start = text.find("{")
     if start < 0:
         return text.strip()
@@ -64,7 +78,7 @@ def _coerce_bool(val: object, default: bool = False) -> bool:
 
 
 def _parse_validator_json(content: str) -> dict:
-    """Парсить JSON від grounding-LLM; кілька стратегій, бо відповідь часто з markdown/прологом."""
+    """Парсить JSON від grounding-LLM."""
     raw = _strip_code_fences(content)
     last_err: Exception | None = None
     for candidate in (raw, _extract_first_json_object(raw)):
@@ -86,7 +100,10 @@ def _parse_validator_json(content: str) -> dict:
 
 
 def _build_ground_truth_blob(state: IssueTriageState) -> str:
-    """Повний контекст для валідації: triage_findings + tool results + body issue."""
+    """
+    Ground truth для валідації: triage_findings + tool results + повний body issue.
+    findings мають бути в blob — інакше звіт копіює type/confidence з воркера й отримує хибний FAIL.
+    """
     parts: list[str] = []
 
     findings = state.get("triage_findings")
@@ -138,13 +155,15 @@ Tool results summary (what data was retrieved):
 
 Write a triage report with these sections:
 1. **Summary** — one sentence
-2. **Analysis** — key findings (reference specific data from tools, not guesses)
+2. **Analysis** — key findings (reference specific data from tools, not guesses). If classification findings include an issue type (bug/feature/question/documentation/duplicate), name that exact type here in plain words so it matches the structured findings.
 3. **Recommendation** — clear actionable next step
 4. **Labels** — suggested GitHub labels (comma-separated)
 
 IMPORTANT: Only include facts that appear in the tool results above. Mark uncertain claims with [UNCERTAIN].
 Use plain **markdown** only. Do NOT wrap the entire report in a ```json``` or ``` code fence.
-Max 300 words."""
+Max 300 words.
+
+{user_instructions}"""
 
 
 async def draft_answer(state: IssueTriageState) -> dict:
@@ -153,7 +172,6 @@ async def draft_answer(state: IssueTriageState) -> dict:
 
     findings_json = json.dumps(state.get("triage_findings", {}), indent=2)
 
-    # Компактне summary tool results (повинно містити ключові цитати/факти, не обрізати issue до заголовка)
     tool_summary = "\n".join(
         f"- {r['tool']}: {_clip_for_prompt(r.get('result', ''), _MAX_TOOL_SUMMARY_CHARS)}"
         for r in state.get("tool_results", [])
@@ -166,6 +184,7 @@ async def draft_answer(state: IssueTriageState) -> dict:
             task_type=state.get("task_type", "classify"),
             findings_json=findings_json,
             tool_summary=tool_summary,
+            user_instructions=user_instructions_block(state) or "(none)",
         ))
     ])
 
@@ -174,7 +193,7 @@ async def draft_answer(state: IssueTriageState) -> dict:
 
     return {
         "triage_report": report,
-        "messages": [AIMessage(content=f"Draft report generated ({len(report)} chars)")],
+        "messages": [aimessage_from_llm(f"Draft report generated ({len(report)} chars)", response)],
     }
 
 
@@ -192,9 +211,9 @@ TOOL RESULTS (ground truth — includes triage_findings, full tool payloads, and
 
 Rules:
 - The [triage_findings] section is part of ground truth: if the report repeats issue type, confidence, priority, or reasoning that appears there OR in the issue body OR in tool payloads, it is GROUNDED (even if phrased differently).
-- Paraphrases and summaries of facts that ARE present in the tool results count as GROUNDED.
-- Obvious logical consequences of stated facts (e.g. "likely a support question" when maintainers said so) are GROUNDED if tied to quoted/stated evidence.
-- Mark as UNGROUNDED only if the report states specific facts, numbers, usernames, file paths, error messages, or timelines that do NOT appear in the blocks above (hallucination / invention).
+- Paraphrases and summaries of facts that ARE present in the tool results or findings count as GROUNDED.
+- Obvious logical consequences of stated facts are GROUNDED if tied to evidence in those blocks.
+- Mark as UNGROUNDED only if the report states specific facts, numbers, usernames, file paths, error messages, or timelines that do NOT appear anywhere in the blocks above (hallucination / invention).
 - Sections like **Labels** are suggestions: label names need not appear verbatim in tools if they are reasonable interpretations of the described issue.
 
 Return ONLY one JSON object (strict JSON: lowercase true/false/null, double-quoted keys). No markdown fences, no text before or after the JSON.
@@ -209,85 +228,166 @@ Return ONLY one JSON object (strict JSON: lowercase true/false/null, double-quot
 PASS (grounding_passed true) only if there are zero ungrounded claims by the rules above."""
 
 
+SECOND_PASS_PROMPT = """Independent reviewer. Verify the triage report against the tool results.
+
+REPORT:
+{report}
+
+TOOL RESULTS (only ground truth):
+{tool_results}
+
+Be strict: for every specific number, username, file path, error message, or date in the report,
+confirm it appears in the tool results (verbatim OR clearly inferable). Ignore generic claims and
+suggested labels (those are interpretations).
+
+Return ONLY JSON (no fences, no commentary):
+{{
+  "grounding_passed": true|false,
+  "ungrounded_claims": ["..."],
+  "hallucination_risk": "high|medium|low",
+  "verdict": "PASS|FAIL"
+}}"""
+
+
+async def _llm_grounding_call(report: str, blob: str, prompt: str):
+    """Один LLM-виклик валідатора (виокремлено для повторного використання)."""
+    llm = get_llm(temperature=0.0)
+    return await llm.ainvoke([
+        SystemMessage(content=SYSTEM_PROMPT),
+        HumanMessage(content=prompt.format(report=report, tool_results=blob)),
+    ])
+
+
+def _decode_validator_response(response) -> tuple[bool, list, str, dict]:
+    """Повертає (passed, ungrounded, hallucination_risk, raw_dict)."""
+    result = _parse_validator_json(response.content)
+    passed = _coerce_bool(result.get("grounding_passed"), False)
+    verdict = str(result.get("verdict") or "").strip().upper()
+    if verdict == "FAIL":
+        passed = False
+    ungrounded = result.get("ungrounded_claims") or []
+    if not isinstance(ungrounded, list):
+        ungrounded = []
+    risk = str(result.get("hallucination_risk") or "").strip().lower()
+    return passed, ungrounded, risk, result
+
+
 async def grounding_validator(state: IssueTriageState) -> dict:
     """
-    Перевіряє кожне твердження звіту проти tool results.
-    Ловить hallucinated citations.
+    Перевіряє звіт проти tool results + triage_findings + body issue.
+
+    Three layers:
+      1. LLM-as-judge (primary).
+      2. Regex fact-check (cheap, deterministic) — overrides LLM на FAIL,
+         якщо знайдено invented #issue, @user, file path або URL.
+      3. Опційний другий LLM-прохід (TRIAGE_DOUBLE_GROUNDING=1) — підтверджує сумнівні.
     """
     report = state.get("triage_report", "")
     if not report:
         return {
             "grounding_passed": False,
+            "fact_check": None,
             "messages": [AIMessage(content="No report to validate")],
         }
 
-    tool_results_text = _build_ground_truth_blob(state)
+    blob = _build_ground_truth_blob(state)
 
-    llm = get_llm(temperature=0.0)
-    response = await llm.ainvoke([
-        SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=GROUNDING_PROMPT.format(
-            report=report,
-            tool_results=tool_results_text,
-        ))
-    ])
+    # ── Layer 2 (fast, no LLM): regex fact check ─────────────────
+    fc: FactCheckResult = check_facts_against_blob(
+        report, blob, fail_threshold=_FACT_CHECK_THRESHOLD,
+    )
+    fc_msg = format_fact_check_warning(fc)
+    if fc.invented:
+        logger.warning(fc_msg)
+    else:
+        logger.info(fc_msg)
 
+    # ── Layer 1: LLM validator ───────────────────────────────────
     try:
-        result = _parse_validator_json(response.content)
-        passed = _coerce_bool(result.get("grounding_passed"), False)
-        verdict = str(result.get("verdict") or "").strip().upper()
-        if verdict == "FAIL":
-            passed = False
-        ungrounded = result.get("ungrounded_claims") or []
-        if not isinstance(ungrounded, list):
-            ungrounded = []
-
-        if not passed:
-            fixed_report = state["triage_report"]
-            for claim in ungrounded[:3]:
-                if isinstance(claim, str) and claim.strip():
-                    fixed_report = fixed_report.replace(claim, f"[UNCERTAIN: {claim}]")
-
-            logger.warning(
-                "Grounding FAILED — passed=%s, ungrounded=%s",
-                passed,
-                ungrounded[:5],
-            )
-            return {
-                "grounding_passed": False,
-                "triage_report": fixed_report,
-                "should_escalate": result.get("hallucination_risk") == "high",
-                "messages": [
-                    AIMessage(
-                        content=(
-                            f"Grounding FAILED: {ungrounded[:3]}"
-                            if ungrounded
-                            else "Grounding FAILED (validator marked fail with no claim list)"
-                        )
-                    )
-                ],
-            }
-
-        logger.info("Grounding PASSED")
-        return {
-            "grounding_passed": True,
-            "messages": [AIMessage(content="Grounding validation PASSED")],
-        }
-
-    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
-        # Чесно: без валідного JSON від валідатора автоматично підтвердити grounding неможливо
-        logger.warning("Validator parse error: %s", e)
+        response = await _llm_grounding_call(report, blob, GROUNDING_PROMPT)
+    except Exception as e:
+        logger.warning("Grounding LLM call failed: %s", e)
         return {
             "grounding_passed": False,
+            "fact_check": fc.to_dict(),
+            "messages": [AIMessage(content=f"Grounding LLM error ({e}); regex fact_check={fc.passed}")],
+        }
+
+    try:
+        passed, ungrounded, risk, _raw = _decode_validator_response(response)
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+        logger.warning("Validator parse error: %s — falling back to fact_check only", e)
+        passed = fc.passed
+        ungrounded = [f"{x['kind']}: {x['value']}" for x in fc.invented[:5]]
+        risk = "medium" if fc.invented else "low"
+
+    # ── Layer 2 enforcement: regex знайшов invented → жорсткий FAIL ─
+    fact_override = False
+    if not fc.passed and passed:
+        passed = False
+        fact_override = True
+        for item in fc.invented:
+            tag = f"{item['kind']}={item['value']!r}"
+            if tag not in ungrounded:
+                ungrounded.append(tag)
+        if risk in ("", "low"):
+            risk = "medium"
+
+    # ── Layer 3 (optional): другий LLM-прохід для підтвердження FAIL ─
+    second_pass: dict | None = None
+    if _DOUBLE_GROUNDING and not passed and not fact_override:
+        try:
+            second_resp = await _llm_grounding_call(report, blob, SECOND_PASS_PROMPT)
+            sp_passed, sp_ungrounded, sp_risk, _ = _decode_validator_response(second_resp)
+            second_pass = {
+                "grounding_passed":   sp_passed,
+                "ungrounded_claims":  sp_ungrounded[:10],
+                "hallucination_risk": sp_risk,
+            }
+            # Якщо другий каже PASS — даємо шанс (тільки коли regex теж PASS).
+            if sp_passed and fc.passed:
+                passed = True
+                ungrounded = []
+                logger.info("Second pass overruled first: PASS")
+        except Exception as e:
+            logger.warning("Second-pass grounding failed: %s", e)
+
+    if not passed:
+        fixed_report = state["triage_report"]
+        for claim in ungrounded[:3]:
+            if isinstance(claim, str) and claim.strip():
+                fixed_report = fixed_report.replace(claim, f"[UNCERTAIN: {claim}]")
+
+        log_extra = " (regex-override)" if fact_override else ""
+        logger.warning(
+            "Grounding FAILED%s — passed=%s, ungrounded=%s, fact_check=%s",
+            log_extra,
+            passed,
+            ungrounded[:5],
+            fc_msg,
+        )
+        return {
+            "grounding_passed":   False,
+            "triage_report":      fixed_report,
+            "fact_check":         fc.to_dict(),
+            "should_escalate":    (risk == "high") or (fc.total_facts > 0 and (fc.facts_grounded_rate or 0) < 0.5),
             "messages": [
-                AIMessage(
-                    content=(
-                        f"Grounding validator returned non-JSON or invalid output ({e!s}); "
-                        "grounding_passed=false (inconclusive — re-run or inspect report manually)"
-                    )
+                aimessage_from_llm(
+                    (
+                        f"Grounding FAILED{log_extra}: {ungrounded[:3]}; {fc_msg}"
+                        + (f"; second_pass={second_pass}" if second_pass else "")
+                    ),
+                    response,
                 )
             ],
         }
+
+    logger.info("Grounding PASSED — %s", fc_msg)
+    return {
+        "grounding_passed": True,
+        "fact_check":       fc.to_dict(),
+        "messages": [aimessage_from_llm(f"Grounding validation PASSED; {fc_msg}", response)],
+    }
 
 
 # ══════════════════════════════════════════════════════
@@ -302,7 +402,6 @@ async def completion_check(state: IssueTriageState) -> dict:
     report   = state.get("triage_report", "")
     findings = state.get("triage_findings", {})
 
-    # Якщо звіт дуже короткий або не містить рекомендації
     has_recommendation = any(
         kw in report.lower()
         for kw in ("recommend", "suggest", "action", "close", "merge", "label", "duplicate of", "affects")
@@ -317,7 +416,6 @@ async def completion_check(state: IssueTriageState) -> dict:
             "messages": [AIMessage(content="Report incomplete, looping back for more analysis")],
         }
 
-    # Якщо confidence low у всіх findings
     confidences = [
         v.get("confidence", "medium")
         for v in findings.values()
@@ -357,7 +455,6 @@ async def human_review(state: IssueTriageState) -> dict:
     feedback = state.get("human_feedback")
 
     if not feedback:
-        # Якщо feedback ще не наданий — форматуємо для людини і чекаємо
         logger.info("HIL interrupt — waiting for human feedback")
         return {
             "messages": [
@@ -370,7 +467,6 @@ async def human_review(state: IssueTriageState) -> dict:
             ]
         }
 
-    # Якщо feedback "approve" — підтверджуємо
     if feedback.strip().lower() in ("approve", "ok", "lgtm", "good"):
         return {
             "grounding_passed": True,
@@ -378,7 +474,6 @@ async def human_review(state: IssueTriageState) -> dict:
             "messages": [AIMessage(content="Human approved the report")],
         }
 
-    # Інакше — регенеруємо звіт з урахуванням фідбеку
     llm = get_llm()
     revised = await llm.ainvoke([
         SystemMessage(content=SYSTEM_PROMPT),
@@ -388,6 +483,7 @@ async def human_review(state: IssueTriageState) -> dict:
             f"HUMAN FEEDBACK: {feedback}\n\n"
             f"Keep the same structure but address the feedback. "
             f"Only use facts from tool results, don't invent new data."
+            f"{user_instructions_block(state)}"
         ))
     ])
 
@@ -397,5 +493,5 @@ async def human_review(state: IssueTriageState) -> dict:
         "needs_more_info":  False,
         "should_escalate":  False,
         "human_feedback":   None,
-        "messages": [AIMessage(content="Report revised based on human feedback")],
+        "messages": [aimessage_from_llm("Report revised based on human feedback", revised)],
     }

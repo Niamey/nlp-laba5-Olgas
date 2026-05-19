@@ -9,15 +9,15 @@
   # Після eval — зведення + по кожній задачі:
   python scripts/show_eval_summary.py --per-task
 
-  # Усі зведені метрики + aggregate triage + по кожній задачі:
-  python scripts/show_eval_summary.py --all
-
-  # Повний JSON:
+  # Повний JSON (як раніше):
   python scripts/show_eval_summary.py --json
   python scripts/show_eval_summary.py trajectories/summary.json --json
 
   # Інший summary / tasks.json:
   python scripts/show_eval_summary.py path/to/summary.json --per-task --tasks path/to/tasks.json
+
+  # Два відокремлені блоки (зведення + по кожній задачі, як після eval):
+  python scripts/show_eval_summary.py --eval-blocks
 """
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ def _grounding_from_result(r: dict) -> bool | None:
 
 
 def print_per_task_lines(data: dict, tasks_path: Path) -> None:
-    """Один блок на кожну задачу з results[] (потрібен свіжий eval, що пише results у summary)."""
+    """Один блок на кожну задачу з results[] (потрібен eval, що пише results у summary)."""
     results = data.get("results") or []
     if not results:
         print("\n  Немає results у summary.json — перезапустіть eval (python main.py --eval ...).")
@@ -100,7 +100,8 @@ def print_per_task_lines(data: dict, tasks_path: Path) -> None:
         print(f"\n  [{i:02d}] {tid}  type={typ}  cat={cat}")
         print(
             f"       {st_pass}  {sc}/{mx} pt  perfect={str(perfect).lower()}  "
-            f"grounding_required={str(g_req).lower()}  grounding_passed={g_s}"
+            f"grounding_required={str(g_req).lower()}  grounding_passed={g_s}  "
+            f"predicted_type={r.get('predicted_classification')!r}"
         )
         est = traj.get("token_usage_est") or {}
         tin = int(est.get("input_tokens_est") or 0)
@@ -157,6 +158,26 @@ def print_triage_metrics_full(tm: dict | None) -> None:
     print(f"      avg_demerits_per_task:     {rs.get('avg_demerits_per_task')}")
     print(f"      total_pass_reasons:        {rs.get('total_pass_reasons')}")
     print(f"      total_demerits:            {rs.get('total_demerits')}")
+    lat = tm.get("latency_s") or {}
+    if lat.get("mean") is not None:
+        print("    latency_s:")
+        print(
+            f"      mean={lat.get('mean')}  p50={lat.get('p50')}  p90={lat.get('p90')}  p95={lat.get('p95')}  "
+            f"min={lat.get('min')}  max={lat.get('max')}  stdev={lat.get('stdev')}"
+        )
+    cp = tm.get("conditional_pass") or {}
+    if cp:
+        print(f"    conditional_pass:            {cp}")
+    gvs = tm.get("grounding_vs_score") or {}
+    if gvs:
+        print(f"    grounding_vs_score:          {gvs}")
+    tcm = tm.get("type_confusion_matrix") or []
+    if tcm:
+        print("    type_confusion_matrix:")
+        for row in tcm[:15]:
+            print(f"      {row}")
+        if len(tcm) > 15:
+            print(f"      … +{len(tcm) - 15} rows")
     byt = tm.get("by_task_type") or {}
     print("    by_task_type:")
     if byt:
@@ -225,6 +246,15 @@ def print_pretty(data: dict, source: str) -> None:
     tm_raw = data.get("triage_metrics")
     print_triage_metrics_full(tm_raw if isinstance(tm_raw, dict) else None)
 
+    if isinstance(tm_raw, dict):
+        ex = tm_raw.get("extended_metrics_summary")
+        if isinstance(ex, dict) and ex.get("tasks_with_extended_metrics"):
+            print("\n  Розширені метрики (середнє по eval):")
+            print(f"    completeness: {ex.get('avg_report_completeness')}  actionability: {ex.get('avg_actionability')}")
+            print(f"    hallucination_rate: {ex.get('hallucination_rate')}  avg_search_queries: {ex.get('avg_search_query_count')}")
+            if ex.get("type_correct_rate") is not None:
+                print(f"    type_correct_rate: {ex.get('type_correct_rate')} ({ex.get('type_correct_evaluated')} tasks)")
+
     if pr_pct is not None and n:
         _bar("Pass rate", pc / max(n, 1))
 
@@ -272,6 +302,11 @@ def main() -> int:
         action="store_true",
         help="Як --per-task: зведення + повний aggregate triage + деталі по кожній задачі",
     )
+    parser.add_argument(
+        "--eval-blocks",
+        action="store_true",
+        help="Додати блоки EVAL: зведення без results[] і JSON по кожній задачі (рубрика + trajectory)",
+    )
     args = parser.parse_args()
 
     path = Path(args.path).resolve()
@@ -292,6 +327,10 @@ def main() -> int:
         print_pretty(data, str(path))
         if args.per_task or args.all:
             print_per_task_lines(data, Path(args.tasks).resolve())
+    if args.eval_blocks:
+        from evaluation.runner import print_eval_metrics_separated
+
+        print_eval_metrics_separated(data)
     return 0
 
 

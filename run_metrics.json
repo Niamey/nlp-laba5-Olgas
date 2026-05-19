@@ -1,0 +1,73 @@
+{
+  "run_id": "c8e92bec-be4f-425e-9ef1-7add9018681e",
+  "issue_url": "https://github.com/fastapi/fastapi/issues/1663",
+  "launch_mode": "auto",
+  "task_hint": null,
+  "user_prompt": null,
+  "task_type": "classify",
+  "tool_calls": 2,
+  "grounding_passed": true,
+  "fact_check": {
+    "issue_numbers": [],
+    "usernames": [],
+    "file_paths": [],
+    "urls": [],
+    "invented": [],
+    "total_facts": 0,
+    "grounded_facts": 0,
+    "facts_grounded_rate": null,
+    "passed": true
+  },
+  "duration_s": 29.02,
+  "error_count": 0,
+  "loop_count": 0,
+  "tool_results": [
+    {
+      "tool": "fetch_github_issue",
+      "args": {
+        "url": "https://github.com/fastapi/fastapi/issues/1663"
+      },
+      "result": {
+        "number": 1663,
+        "title": "CORSMiddleware not work",
+        "body": "Hi,\r\nI searched the FastAPI documentation( https://fastapi.tiangolo.com/tutorial/cors/). But get errors:\r\nAccess to XMLHttpRequest at \"http://127.0.0.1:8086/api\" from origin \"http://www.example.com\" has been blocked by CORS policy:Response to preflight request doesn't pass access control check:No 'Access-Control-Allow-Origin' header is present on the requeste resource.\r\n\r\n\"http://127.0.0.1:8086/api\" and \"http://www.example.com\" are in same pc.\r\n\r\nfrom fastapi import FastAPI\r\nfrom starlette.middleware.cors import CORSMiddleware\r\n\r\napp = FastAPI()\r\napp.add_middleware(\r\n    CORSMiddleware,\r\n    allow_origins=[\"*\"],      \r\n    allow_credentials=True,\r\n    allow_methods=[\"*\"], \r\n    allow_headers=[\"*\"],\r\n)\r\n\r\n",
+        "state": "closed",
+        "labels": [
+          {
+            "name": "question"
+          },
+          {
+            "name": "answered"
+          },
+          {
+            "name": "question-migrate"
+          }
+        ],
+        "user": {
+          "login": "LYH8112"
+        },
+        "created_at": "2020-07-01T03:56:53Z",
+        "updated_at": "2023-02-28T01:07:50Z",
+        "closed_at": "2023-02-28T01:07:50Z",
+        "comments": 90,
+        "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/1663/comments",
+        "html_url": "https://github.com/fastapi/fastapi/issues/1663",
+        "pull_request": null
+      }
+    },
+    {
+      "tool": "save_triage_note",
+      "args": {
+        "issue_url": "https://github.com/fastapi/fastapi/issues/1663"
+      },
+      "result": "saved"
+    }
+  ],
+  "token_usage_est": {
+    "input_tokens_est": 4296,
+    "output_tokens_est": 4748,
+    "total_tokens_est": 9044
+  },
+  "timestamp": "2026-05-19T12:55:55.312448",
+  "report": "**Summary**\nThe user is asking for help with `CORSMiddleware` not working as expected, leading to a 'No Access-Control-Allow-Origin header' error despite following documentation.\n\n**Analysis**\nThis issue is classified as a **question**. The user reports that `CORSMiddleware` is not functioning, resulting in a \"No 'Access-Control-Allow-Origin' header is present\" error. They followed the FastAPI documentation for CORS and provided a code snippet showing `CORSMiddleware` configured with `allow_origins=[\"*\"]`, `allow_credentials=True`, `allow_methods=[\"*\"]`, and `allow_headers=[\"*\"]`. The issue is currently closed and has 90 comments, suggesting it has been addressed. Existing labels include `question`, `answered`, and `question-migrate`.\n\n**Recommendation**\nGiven that the issue is a question and is already closed and labeled as 'answered', no further action is required for this specific issue.\n\n**Labels**\nquestion, cors, middleware, answered, question-migrate"
+}

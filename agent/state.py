@@ -14,7 +14,8 @@ class IssueTriageState(TypedDict):
 
     # Вхідні дані
     issue_url: str
-    task_hint: Optional[str]        # підказка від юзера: "find duplicates", etc.
+    task_hint: Optional[str]        # підказка від юзера: duplicate|code_area|stale|classify
+    user_prompt: Optional[str]      # довільні інструкції користувача для цього прогону
 
     # Результати decompose
     repo_owner: Optional[str]
@@ -37,6 +38,7 @@ class IssueTriageState(TypedDict):
     # Outputs
     triage_report: Optional[str]    # фінальний звіт
     grounding_passed: bool          # чи пройшла валідація
+    fact_check: Optional[dict]      # regex fact-check: invented #N/@user/file paths + facts_grounded_rate
 
     # Control flow
     needs_more_info: bool
@@ -55,12 +57,18 @@ class IssueTriageState(TypedDict):
     human_feedback: Optional[str]   # заповнюється при HIL interrupt
 
 
-def initial_state(issue_url: str, task_hint: Optional[str] = None, run_id: str = "") -> IssueTriageState:
+def initial_state(
+    issue_url: str,
+    task_hint: Optional[str] = None,
+    user_prompt: Optional[str] = None,
+    run_id: str = "",
+) -> IssueTriageState:
     """Створює початковий стан для нового запуску."""
     import uuid
     return IssueTriageState(
         issue_url=issue_url,
         task_hint=task_hint,
+        user_prompt=(user_prompt or "").strip() or None,
         repo_owner=None,
         repo_name=None,
         issue_number=None,
@@ -73,6 +81,7 @@ def initial_state(issue_url: str, task_hint: Optional[str] = None, run_id: str =
         triage_findings={},
         triage_report=None,
         grounding_passed=False,
+        fact_check=None,
         needs_more_info=False,
         should_escalate=False,
         tool_calls_count=0,

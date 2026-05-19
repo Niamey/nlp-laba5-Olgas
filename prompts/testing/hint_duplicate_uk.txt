@@ -1,0 +1,2 @@
+Знайди схожі issues у репозиторії мінімум двома різними запитами через search_similar_issues.
+У звіті вкажи номери issues з пошуку (не вигадуй чисел) і вердикт: duplicate / related / not duplicate.

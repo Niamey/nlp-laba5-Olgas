@@ -78,6 +78,8 @@ python main.py --eval --output trajectories/
 ### Демо, список MCP і метрики (захист)
 
 - Повний сценарій: **[docs/DEMO_AND_METRICS.md](docs/DEMO_AND_METRICS.md)**
+- **Документація по коду** (граф, score, метрики, файли): **[docs/CODE_DOCUMENTATION_UA.md](docs/CODE_DOCUMENTATION_UA.md)**
+- **Розширені метрики — опис змін** (що зроблено, формули, файли коду): **[docs/ROZSHYRENI_METRYKY_ZMINY_UA.md](docs/ROZSHYRENI_METRYKY_ZMINY_UA.md)**
 - Показати всі MCP-сервери й тулі з описами: `python main.py --list-mcp`
 - Останній `summary.json` після eval: `python scripts/show_eval_summary.py`
 - Перевірка набору задач перед eval: `python scripts/check_assignment_readiness.py`
@@ -98,8 +100,6 @@ python -m evaluation.ablations --ablation graph
 ```
 
 ### 6. HTTP API
-
-Приклади **CLI**, потім **HTTP JSON** для кожного типу тріажу: **[docs/API_TRIAGE_REQUESTS_UA.md](docs/API_TRIAGE_REQUESTS_UA.md)**.
 
 ```bash
 uvicorn api:app --port 8080

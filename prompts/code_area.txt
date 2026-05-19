@@ -1,0 +1,3 @@
+Визнач primary module і 1–2 file paths лише якщо вони згадані в issue body або repo tree з fetch_url.
+Не вигадуй шляхи до файлів.
+У звіті: component, confidence (high|medium|low), коротке reasoning з посиланням на evidence.

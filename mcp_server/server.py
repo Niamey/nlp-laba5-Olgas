@@ -2,9 +2,6 @@
 """
 GitHub Triage MCP Server — власний MCP сервер (окремий процес).
 
-У конфігурації агента (`agent/mcp_config.py`) цей файл підключений під ключем **github_triage**
-(перший з двох MCP; другий — опційний **fetch** з пакета mcp-server-fetch, без цього репо).
-
 Запуск:
     python mcp_server/server.py
 
@@ -126,10 +123,8 @@ mcp = FastMCP(
     ),
 )
 
-
-# ══════════════════════════════════════════════════════════════════
 # Tool 1: fetch_github_issue
-# ══════════════════════════════════════════════════════════════════
+
 
 @mcp.tool()
 async def fetch_github_issue(url: str) -> str:
@@ -159,7 +154,6 @@ async def fetch_github_issue(url: str) -> str:
     await asyncio.sleep(RATE_LIMIT_DELAY)
 
     try:
-        # Репозиторії GitHub часом переїжджають → 301; інакше httpx.raise_for_status() кидає про redirect.
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             resp = await client.get(api_url, headers=_github_headers())
 
@@ -170,7 +164,6 @@ async def fetch_github_issue(url: str) -> str:
         else:
             resp.raise_for_status()
             data = resp.json()
-            # Компактний формат — залишаємо тільки корисні поля
             result = json.dumps({
                 "number":      data.get("number"),
                 "title":       data.get("title"),
@@ -198,9 +191,9 @@ async def fetch_github_issue(url: str) -> str:
         return json.dumps({"error": str(e)})
 
 
-# ══════════════════════════════════════════════════════════════════
+
 # Tool 2: search_similar_issues
-# ══════════════════════════════════════════════════════════════════
+
 
 @mcp.tool()
 async def search_similar_issues(repo: str, query: str, max_results: int = 5) -> str:
@@ -263,9 +256,9 @@ async def search_similar_issues(repo: str, query: str, max_results: int = 5) -> 
         return json.dumps({"error": str(e)})
 
 
-# ══════════════════════════════════════════════════════════════════
+
 # Tool 3: fetch_url (generic GitHub API fetcher)
-# ══════════════════════════════════════════════════════════════════
+
 
 @mcp.tool()
 async def fetch_url(url: str) -> str:
@@ -309,9 +302,8 @@ async def fetch_url(url: str) -> str:
         return json.dumps({"error": str(e)})
 
 
-# ══════════════════════════════════════════════════════════════════
 # Tool 4: save_triage_note (local bookkeeping)
-# ══════════════════════════════════════════════════════════════════
+
 
 @mcp.tool()
 async def save_triage_note(issue_url: str, note: str) -> str:
@@ -339,9 +331,9 @@ async def save_triage_note(issue_url: str, note: str) -> str:
         return json.dumps({"error": str(e)})
 
 
-# ══════════════════════════════════════════════════════════════════
+
 # Tool 5: get_triage_notes (local bookkeeping)
-# ══════════════════════════════════════════════════════════════════
+
 
 @mcp.tool()
 async def get_triage_notes(issue_url: str) -> str:
@@ -376,4 +368,4 @@ if __name__ == "__main__":
     logger.info("Starting GitHub Triage MCP Server...")
     logger.info("Cache dir: %s", CACHE_DIR)
     logger.info("GitHub token: %s", "set" if GITHUB_TOKEN else "NOT SET (unauthenticated)")
-    mcp.run()  # stdio transport за замовчуванням
+    mcp.run()  # stdio transport

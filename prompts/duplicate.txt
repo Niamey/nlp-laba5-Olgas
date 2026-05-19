@@ -1,0 +1,4 @@
+Зроби щонайменше 2 пошукові запити через search_similar_issues.
+Порівняй root cause, не лише заголовок.
+У звіті вкажи номери issues і вердикт: duplicate, related (not duplicate), або unique.
+Не вигадуй issue numbers, яких немає в результатах пошуку.

@@ -1,0 +1,4 @@
+type у JSON: рівно одне з bug, feature, question, documentation, duplicate (lowercase).
+У justification процитуй 1–2 фрази з title або body issue.
+Запропонуй 2–3 suggested_labels англійською.
+Якщо невпевнений — confidence low, не вигадуй факти про issue.

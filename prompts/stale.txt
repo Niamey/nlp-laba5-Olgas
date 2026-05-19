@@ -1,0 +1,3 @@
+Проаналізуй created_at, updated_at і останні коментарі (якщо є).
+Дай конкретну recommended_action: close, ping_author, needs_pr, needs_info, keep_open.
+Поясни, чи issue ще актуальний і що блокує прогрес.

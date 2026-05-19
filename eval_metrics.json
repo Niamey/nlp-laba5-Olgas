@@ -1,0 +1,2655 @@
+{
+  "run_timestamp": "2026-05-18T22:09:23.117663",
+  "model": "gemini-2.5-pro",
+  "total_tasks": 30,
+  "pass_count": 25,
+  "pass_rate": 0.833,
+  "total_points": 71,
+  "max_points": 90,
+  "score_pct": 78.9,
+  "avg_latency_s": 21.83,
+  "avg_tool_calls": 1.97,
+  "tool_usage": {
+    "fetch_github_issue": 22,
+    "save_triage_note": 10,
+    "search_similar_issues": 8,
+    "fetch_url": 9
+  },
+  "by_category": {
+    "happy_path": {
+      "pass": 12,
+      "total": 17,
+      "points": 38,
+      "max": 51
+    },
+    "ambiguous": {
+      "pass": 6,
+      "total": 6,
+      "points": 16,
+      "max": 18
+    },
+    "adversarial": {
+      "pass": 4,
+      "total": 4,
+      "points": 9,
+      "max": 12
+    },
+    "should_refuse": {
+      "pass": 3,
+      "total": 3,
+      "points": 8,
+      "max": 9
+    }
+  },
+  "results": [
+    {
+      "task_id": "T001",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 0,
+      "max_points": 3,
+      "passed": false,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "FAIL: Report must mention (substring): ['justification']",
+        "FAIL: Expected type in ['bug'] (structured=documentation, report_substring_match=False)"
+      ],
+      "trajectory": {
+        "run_id": "52a8b80c-481c-4e16-b1f7-df61188e2e0c",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/10370",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 25.44,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/10370"
+            },
+            "result": {
+              "number": 10370,
+              "title": "🚀 Roadmap",
+              "body": "## Description\n\nThis is a tentative roadmap, I will update it as things evolve. Some things might be discarded, others might be added later. I didn't want to make it fully public as it could raise expectations, but it seems it would be more beneficial for the community to know all the ideas and objectives.\n\nWork on this is alternated (and sometimes mixed) with work on Typer, SQLModel, Asyncer, and others.\n\nAnswering questions, issues, and PRs is also intermixed with this, but as in some cases one of these features would solve several issues or questions, or potentially solve something done by one or more PRs, in many cases I focus on this a bit more than on answering specific issues, questions, PRs.\n\n## Other Tools\n\nFastAPI gets a lot of help from the underlying tools and the people behind them, Pydantic, Starlette, Uvicorn. A lot of the work done there reflects in FastAPI, so they are helping FastAPI, in some way helping maintaining it too, because it's all connected.\n\n## Maintenance\n\nThe word \"maintenance\" or \"maintainer\" doesn't have a very strict definition, and it probably varies a lot from perspective.\n\nA lot of the work related to maintaining FastAPI is done by contributors, you can see the current team here: https://fastapi.tiangolo.com/fastapi-people/#team\n\nAnd you can learn about how the project is managed here: https://fastapi.tiangolo.com/management/\n\nI also receive a lot of help from others like the FastAPI Experts: https://fastapi.tiangolo.com/fastapi-people/#fastapi-experts\n\nA lot of the maintenance work is done by this amazing community.\n\nIf I suddenly died being hit by a bus, there are already mechanisms in place for code inheritance, there are others with GitHub rights to take over, etc. but I have requested to still review each PR myself.\n\nYou can help me ensure each existing PR is in shape (has tests, solves the problem, etc.). Make sure you filter out the translation PRs (most of them) unless you speak the language and can review them.\n\n## Security\n\nWhen there are security issues, those are handled with the highest priority, normally involving all the projects and the people from them (FastAPI, Starlette, Pydantic, Uvicorn). Those are normally not handled in issues and PRs but in emails, it's not public until the security disclosure is made, in most cases (always, up to now) with the version that fixes them.\n\n## Roadmap\n\nNow, here's the current high-level tentative roadmap:\n\n- [x] Code reference, for functions, classes, parameters, etc. (https://github.com/tiangolo/fastapi/pull/10392)\n    * This required additional tooling and methods that didn't exist before.\n- [x] Pydantic v2 used for serialization (increasing performance).\n- [ ] Pydantic v2 used for parsing (increasing performance).\n- [x] Upgrade Starlette.\n- [x] FastAPI CLI\n- [x] Explore supporting Pydantic v1 and v2 on the same app (https://github.com/fastapi/fastapi/pull/14168).\n- [ ] Refactor routers, to re-use router instances instead of cloning path operations. This will allow several things like:\n    * Middlewares per router.\n    * Custom router classes.\n    * Dependencies per router, including for handling 404 (replacing most of the middleware functionality).\n- [x] Support for Pydantic models for `Query()`, `Form()`, etc.\n\nProbably similar to:\n\n```python\nclass Common(BaseModel):\n    token: str\n    skip: int = 0\n    limit: int = 100\n\n\n@app.get(\"/items/\")\ndef read_items(commons: Annotated[Common, Query()]):\n    ...\n```\n\n- [ ] Additional security and authentication tools to simplify common tasks.\n    * Auth2 with a third party.\n    * Buildling an OAuth2 single sign-on server.\n    * Cookie-based auth.\n    * More docs for Bearer tokens.\n- [ ] Improved dependency overrides for testing.\n- [x] Clearer server errors and tracebacks (https://github.com/fastapi/fastapi/pull/14306).\n- [ ] Docs for liveness and readiness for Kubernetes and others.\n- [ ] Customization of parsing and serialization (to support more than JSON).\n- [ ] Errors based on [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html).\n- [ ] Refactors and simplifications of internal code.\n- [ ] Improved lifespan support/API.\n- [ ] Improved middleware support/API.\n- [ ] Updated SQL tutorials (sync and async) based on SQLModel.\n- [ ] New NoSQL tutorial.\n- [x] Refactor for dependencies, ~end before response~ (this was done a while ago, and now it's being reverted as it would break streaming responses, but several things were fixed along the way).\n- [ ] Performance optimizations.\n- [ ] Experiments with internal batch processing.\n    * E.g. for batch ML inference in the same app.\n- [x] Support for both Python v1 and v2 at the same time to make migrations easier: https://fastapi.tiangolo.com/how-to/migrate-from-pydantic-v1-to-pydantic-v2/\n- [x] Drop support for Python versions that already reached End of Life, as the time of writing, Python 3.8 and Python 3.9\n- [x] Drop support for Pydantic v1 (after adding support for having both v1 and v2 at the same time, so people have an easier way to migrate)\n\n## Note\n\nThis issue is just to keep anyone interested updated. For individual conversations, comments, requests, questions, please create a separate discussion question. Otherwise, we would end up with a single issue to cover everything and that's not the idea. 😅",
+              "state": "open",
+              "labels": [],
+              "user": {
+                "login": "tiangolo"
+              },
+              "created_at": "2023-10-02T21:54:54Z",
+              "updated_at": "2026-02-22T17:19:27Z",
+              "closed_at": null,
+              "comments": 5,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/10370/comments",
+              "html_url": "https://github.com/fastapi/fastapi/issues/10370",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/fastapi/fastapi/issues/10370"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 6881,
+          "output_tokens_est": 3673,
+          "total_tokens_est": 10554
+        },
+        "timestamp": "2026-05-18T22:09:23.120684"
+      },
+      "report_snippet": "### Summary\nThis issue serves as a tentative roadmap for the FastAPI project, communicating future plans and objectives to the community.\n\n### Analysis\nThis issue is classified as documentation. The title \"🚀 Roadmap\" and the body content explicitly state, \"This is a tentative roadmap, I will update ",
+      "elapsed_s": 25.45,
+      "error": null,
+      "predicted_classification": "documentation"
+    },
+    {
+      "task_id": "T002",
+      "category": "happy_path",
+      "type": "duplicate",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed",
+        "PASS: Searched for similar issues"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "62d9b91b-51d3-4fa4-86ae-7351ac431c07",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/1663",
+        "launch_mode": null,
+        "task_hint": "duplicate",
+        "user_prompt": null,
+        "task_type": "duplicate",
+        "tool_calls": 4,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "1663",
+            "1119",
+            "5207",
+            "98",
+            "9164",
+            "992"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 6,
+          "grounded_facts": 6,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 32.43,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/1663"
+            },
+            "result": {
+              "number": 1663,
+              "title": "CORSMiddleware not work",
+              "body": "Hi,\r\nI searched the FastAPI documentation( https://fastapi.tiangolo.com/tutorial/cors/). But get errors:\r\nAccess to XMLHttpRequest at \"http://127.0.0.1:8086/api\" from origin \"http://www.example.com\" has been blocked by CORS policy:Response to preflight request doesn't pass access control check:No 'Access-Control-Allow-Origin' header is present on the requeste resource.\r\n\r\n\"http://127.0.0.1:8086/api\" and \"http://www.example.com\" are in same pc.\r\n\r\nfrom fastapi import FastAPI\r\nfrom starlette.middleware.cors import CORSMiddleware\r\n\r\napp = FastAPI()\r\napp.add_middleware(\r\n    CORSMiddleware,\r\n    allow_origins=[\"*\"],      \r\n    allow_credentials=True,\r\n    allow_methods=[\"*\"], \r\n    allow_headers=[\"*\"],\r\n)\r\n\r\n",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "question"
+                },
+                {
+                  "name": "answered"
+                },
+                {
+                  "name": "question-migrate"
+                }
+              ],
+              "user": {
+                "login": "LYH8112"
+              },
+              "created_at": "2020-07-01T03:56:53Z",
+              "updated_at": "2023-02-28T01:07:50Z",
+              "closed_at": "2023-02-28T01:07:50Z",
+              "comments": 90,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/1663/comments",
+              "html_url": "https://github.com/fastapi/fastapi/issues/1663",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "CORSMiddleware not work"
+            },
+            "result": [
+              {
+                "number": 98,
+                "title": "Websocket Routes Only Work on FastAPI, not APIRouter",
+                "state": "closed",
+                "labels": [
+                  "bug",
+                  "reviewed"
+                ],
+                "created_at": "2019-03-24T01:51:32Z",
+                "updated_at": "2023-12-15T13:47:59Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/98",
+                "score": 1.0
+              },
+              {
+                "number": 1663,
+                "title": "CORSMiddleware not work",
+                "state": "closed",
+                "labels": [
+                  "question",
+                  "answered",
+                  "question-migrate"
+                ],
+                "created_at": "2020-07-01T03:56:53Z",
+                "updated_at": "2023-02-28T01:07:50Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/1663",
+                "score": 1.0
+              },
+              {
+                "number": 5207,
+                "title": "CORSMiddleware doesn't work as expected",
+                "state": "closed",
+                "labels": [
+                  "question",
+                  "question-migrate"
+                ],
+                "created_at": "2022-07-28T13:07:02Z",
+                "updated_at": "2023-02-27T21:48:25Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/5207",
+                "score": 1.0
+              },
+              {
+                "number": 1119,
+                "title": "CORSMiddleware  Not Work ,How can i deal with options request",
+                "state": "closed",
+                "labels": [
+                  "question",
+                  "question-migrate"
+                ],
+                "created_at": "2020-03-16T05:17:20Z",
+                "updated_at": "2023-02-28T10:17:04Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/1119",
+                "score": 1.0
+              },
+              {
+                "number": 3859,
+                "title": "BackgroundTasks can't work with middleware",
+                "state": "closed",
+                "labels": [
+                  "question",
+                  "investigate",
+                  "question-migrate"
+                ],
+                "created_at": "2021-09-03T09:26:02Z",
+                "updated_at": "2023-02-28T16:38:16Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/3859",
+                "score": 1.0
+              }
+            ]
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "Hi,\r\nI searched the FastAPI documentation( https://fastapi.t"
+            },
+            "result": []
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "question answered question-migrate"
+            },
+            "result": [
+              {
+                "number": 9164,
+                "title": "Migrate questions in GitHub Issues to GitHub Discussions",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2023-03-01T12:33:25Z",
+                "updated_at": "2023-03-01T12:33:39Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/9164",
+                "score": 1.0
+              },
+              {
+                "number": 992,
+                "title": "Create an FAQ using questions from the github issues",
+                "state": "closed",
+                "labels": [
+                  "feature",
+                  "question"
+                ],
+                "created_at": "2020-02-17T17:08:11Z",
+                "updated_at": "2023-03-04T15:07:37Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/992",
+                "score": 1.0
+              }
+            ]
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 6494,
+          "output_tokens_est": 4013,
+          "total_tokens_est": 10507
+        },
+        "timestamp": "2026-05-18T22:09:48.568655"
+      },
+      "report_snippet": "**Summary**\nIssue #1663, reporting `CORSMiddleware` not working due to a preflight request error, is a duplicate of issue #1119.\n\n**Analysis**\nThis issue is classified as a duplicate. Issue #1663's body explicitly states a CORS error: \"Response to preflight request doesn't pass access control check:",
+      "elapsed_s": 32.43,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T003",
+      "category": "happy_path",
+      "type": "code_area",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed",
+        "PASS: Identified a module/component"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "610b8e52-724d-43e6-8c2a-eaeef8eecc51",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/5920",
+        "launch_mode": null,
+        "task_hint": "code_area",
+        "user_prompt": null,
+        "task_type": "code_area",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "5920"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 27.69,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/5920"
+            },
+            "result": {
+              "number": 5920,
+              "title": "🔧 Add template for questions in Discussions",
+              "body": "🔧 Add template for questions in Discussions",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "tiangolo"
+              },
+              "created_at": "2023-01-24T14:23:48Z",
+              "updated_at": "2023-01-24T14:30:05Z",
+              "closed_at": "2023-01-24T14:30:04Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/5920/comments",
+              "html_url": "https://github.com/fastapi/fastapi/pull/5920",
+              "pull_request": {
+                "url": "https://api.github.com/repos/fastapi/fastapi/pulls/5920",
+                "html_url": "https://github.com/fastapi/fastapi/pull/5920",
+                "diff_url": "https://github.com/fastapi/fastapi/pull/5920.diff",
+                "patch_url": "https://github.com/fastapi/fastapi/pull/5920.patch",
+                "merged_at": "2023-01-24T14:30:04Z"
+              }
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/fastapi/fastapi/git/trees/HEAD?recursive=1"
+            },
+            "result": "1119 files"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3207,
+          "output_tokens_est": 4172,
+          "total_tokens_est": 7379
+        },
+        "timestamp": "2026-05-18T22:10:21.007302"
+      },
+      "report_snippet": "**Summary**\nThe issue proposes adding a template for questions in GitHub Discussions and has been closed and merged as a pull request.\n\n**Analysis**\nIssue 5920, titled \"🔧 Add template for questions in Discussions\" and created by `tiangolo`, is a pull request that was created, updated, and closed on ",
+      "elapsed_s": 27.69,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T004",
+      "category": "happy_path",
+      "type": "stale",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed",
+        "PASS: Included recommendation"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "eb17bbfa-d75e-4ee9-84cb-4b00cae6bca8",
+        "issue_url": "https://github.com/pallets/flask/issues/4179",
+        "launch_mode": null,
+        "task_hint": "stale",
+        "user_prompt": null,
+        "task_type": "stale",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 22.86,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/4179"
+            },
+            "result": {
+              "number": 4179,
+              "title": "Flask with PyInstaller does not show images added at runtime",
+              "body": "I have a simple app running on Flask, which displays images from a directory. Which works fine, until I create an executable using Pyinstaller. This executable also works when there were already some images at the time of creation, but it can't load any later added images, I guess it just bundles all the existing images. I tried with both a single file and a directory, nothing worked. I would be really grateful if somebody can give me some direction on this.\r\n\r\nFor more detail and sample code to reproduce this issue is [here](https://stackoverflow.com/questions/68153266/flask-with-pyinstaller-does-not-show-images-added-at-runtime).",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "danishansari"
+              },
+              "created_at": "2021-06-28T04:21:42Z",
+              "updated_at": "2021-06-28T04:30:13Z",
+              "closed_at": "2021-06-28T04:30:13Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/4179/comments",
+              "html_url": "https://github.com/pallets/flask/issues/4179",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/pallets/flask/issues/4179/comments"
+            },
+            "result": "1 comments"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3836,
+          "output_tokens_est": 3327,
+          "total_tokens_est": 7163
+        },
+        "timestamp": "2026-05-18T22:10:48.699776"
+      },
+      "report_snippet": "**Summary**\nThis issue, concerning Flask with PyInstaller not displaying runtime-added images, was created and closed on the same day in 2021, with a maintainer concluding it was not a Flask bug.\n\n**Analysis**\nThe issue (number 4179) was opened on 2021-06-28 and closed on the same day, 2021-06-28, w",
+      "elapsed_s": 22.86,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T005",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 1,
+      "max_points": 3,
+      "passed": false,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "FAIL: Expected type in ['feature'] (structured=—, report_substring_match=False)"
+      ],
+      "trajectory": {
+        "run_id": "697b3174-0a43-4ae8-871c-8017e567ac59",
+        "issue_url": "https://github.com/psf/requests/issues/6109",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "code_area",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [
+            "src/requests/adapters.py",
+            "src/requests/sessions.py"
+          ],
+          "urls": [],
+          "invented": [],
+          "total_facts": 2,
+          "grounded_facts": 2,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 31.55,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/psf/requests/issues/6109"
+            },
+            "result": {
+              "number": 6109,
+              "title": "Custom SSL context is ignored when using proxy",
+              "body": "## Summary\r\n\r\nI'm using a custom HTTPAdapter to bypass TLS fingerprinting. Without a proxy, everything works fine. However, when using a proxy, the custom cipher settings appear to be ignored and it falls back to the default `requests` SSL context.\r\n\r\nI have confirmed this with multiple non-intercepting HTTP and HTTPS proxies, and fact that the fingerprint is identical to the default `requests` one every time (despite Python or `requests` not being involved in the proxy software at all) confirms that this is not an issue with my proxy.\r\n\r\n## Expected Result\r\n\r\nThe custom SSL context settings should be respected.\r\n\r\n## Actual Result\r\n\r\nThe custom SSL context settings are ignored and the defaults are used.\r\n\r\n## Reproduction Steps\r\n\r\n```python\r\n#!/usr/bin/env python3\r\n\r\nimport ssl\r\n\r\nimport requests\r\n\r\n\r\nPROXY = 'REDACTED'\r\n\r\n\r\nclass TLSFPBypassAdapter(requests.adapters.HTTPAdapter):\r\n    def init_poolmanager(self, *args, **kwargs):\r\n        print('TLSFPBypassAdapter.init_poolmanager called')\r\n        ctx = ssl.create_default_context()\r\n        ctx.set_ciphers('ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:AES256-SHA')\r\n        ctx.check_hostname = False  # For some reason, this is needed to avoid a verification error\r\n        kwargs['ssl_context'] = ctx\r\n        return super().init_poolmanager(*args, **kwargs)\r\n\r\n\r\ndef get_tls_fingerprint(session):\r\n    return session.get('https://tls.browserleaks.com/json').json()['ja3_hash']\r\n\r\n\r\nprint('Default SSL context:')\r\nsession1 = requests.Session()\r\nprint(get_tls_fingerprint(session1))\r\n\r\nprint()\r\n\r\nprint('Default SSL context + proxy:')\r\nsession2 = requests.Session()\r\nsession2.proxies.update({'all': PROXY})\r\nprint(get_tls_fingerprint(session2))\r\n\r\nprint()\r\n\r\nprint('Custom SSL context:')\r\nsession3 = requests.Session()\r\nsession3.mount('http://', TLSFPBypassAdapter())\r\nsession3.mount('https://', TLSFPBypassAdapter())\r\nprint(get_tls_fingerprint(session3))\r\n\r\nprint()\r\n\r\nprint('Custom SSL context + proxy:')\r\nsession4 = requests.Session()\r\nsession4.mount('http://', TLSFPBypassAdapter())\r\nsession4.mount('https://', TLSFPBypassAdapter())\r\nsession4.proxies.update({'all': PROXY})\r\nprint(get_tls_fingerprint(session4))\r\n```\r\n\r\nOutput:\r\n```\r\nDefault SSL context:\r\ne85f4ba10180c530d8c0dc5577f88413\r\n\r\nDefault SSL context + proxy:\r\ne85f4ba10180c530d8c0dc5577f88413\r\n\r\nCustom SSL context:\r\nTLSFPBypassAdapter.init_poolmanager called\r\nTLSFPBypassAdapter.init_poolmanager called\r\n5a923e30925d6e3fe0dd6ff098905a01\r\n\r\nCustom SSL context + proxy:\r\nTLSFPBypassAdapter.init_poolmanager called\r\nTLSFPBypassAdapter.init_poolmanager called\r\ne85f4ba10180c530d8c0dc5577f88413\r\n```\r\n\r\n## System Information\r\n\r\n    $ python -m requests.help\r\n\r\n```json\r\n{\r\n  \"chardet\": {\r\n    \"version\": null\r\n  },\r\n  \"charset_normalizer\": {\r\n    \"version\": \"2.0.12\"\r\n  },\r\n  \"cryptography\": {\r\n    \"version\": \"\"\r\n  },\r\n  \"idna\": {\r\n    \"version\": \"3.3\"\r\n  },\r\n  \"implementation\": {\r\n    \"name\": \"CPython\",\r\n    \"version\": \"3.10.4\"\r\n  },\r\n  \"platform\": {\r\n    \"release\": \"4.19.0-18-amd64\",\r\n    \"system\": \"Linux\"\r\n  },\r\n  \"pyOpenSSL\": {\r\n    \"openssl_version\": \"\",\r\n    \"version\": null\r\n  },\r\n  \"requests\": {\r\n    \"version\": \"2.27.1\"\r\n  },\r\n  \"system_ssl\": {\r\n    \"version\": \"101010ef\"\r\n  },\r\n  \"urllib3\": {\r\n    \"version\": \"1.26.9\"\r\n  },\r\n  \"using_charset_normalizer\": true,\r\n  \"using_pyopenssl\": false\r\n}\r\n```",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "ghost"
+              },
+              "created_at": "2022-04-17T14:03:31Z",
+              "updated_at": "2023-04-18T00:03:01Z",
+              "closed_at": "2022-04-17T15:17:28Z",
+              "comments": 2,
+              "comments_url": "https://api.github.com/repos/psf/requests/issues/6109/comments",
+              "html_url": "https://github.com/psf/requests/issues/6109",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/psf/requests/git/trees/HEAD?recursive=1"
+            },
+            "result": "37 files"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 7945,
+          "output_tokens_est": 4489,
+          "total_tokens_est": 12434
+        },
+        "timestamp": "2026-05-18T22:11:11.556921"
+      },
+      "report_snippet": "**Summary**\nA custom `HTTPAdapter`'s SSL context settings are ignored when a proxy is configured in `requests.Session`.\n\n**Analysis**\nThis is a bug where a custom `HTTPAdapter`'s `init_poolmanager` method, intended to set a custom SSL context, is not respected when a proxy is used. The issue explici",
+      "elapsed_s": 31.55,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T006",
+      "category": "happy_path",
+      "type": "duplicate",
+      "score": 1,
+      "max_points": 3,
+      "passed": false,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "FAIL: Did not search for similar issues"
+      ],
+      "trajectory": {
+        "run_id": "b9da9b11-0f09-4343-bb62-fc7b560f4b71",
+        "issue_url": "https://github.com/encode/httpx/issues/2397",
+        "launch_mode": null,
+        "task_hint": "duplicate",
+        "user_prompt": null,
+        "task_type": "duplicate",
+        "tool_calls": 0,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 12.57,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 1518,
+          "output_tokens_est": 1396,
+          "total_tokens_est": 2914
+        },
+        "timestamp": "2026-05-18T22:11:43.113003"
+      },
+      "report_snippet": "**Summary**\nThe issue cannot be classified as a duplicate due to a lack of content in the issue body.\n\n**Analysis**\nThe `duplicate_analysis` indicates that the issue is not a duplicate (`is_duplicate: false`) and no related issues were found. The confidence in this assessment is low, as the issue bo",
+      "elapsed_s": 12.57,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T007",
+      "category": "happy_path",
+      "type": "code_area",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "WARN: No clear module identified"
+      ],
+      "trajectory": {
+        "run_id": "b58cfd90-dc3e-410f-9da8-afbcd4cde8a5",
+        "issue_url": "https://github.com/encode/httpx/issues/2714",
+        "launch_mode": null,
+        "task_hint": "code_area",
+        "user_prompt": null,
+        "task_type": "code_area",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "2714"
+          ],
+          "usernames": [],
+          "file_paths": [
+            "httpx/response.py",
+            "httpx/models.py"
+          ],
+          "urls": [],
+          "invented": [],
+          "total_facts": 3,
+          "grounded_facts": 3,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 25.38,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/encode/httpx/issues/2714"
+            },
+            "result": {
+              "number": 2714,
+              "title": "Support context manager in Response object",
+              "body": "<!-- Thanks for contributing to HTTPX! 💚\r\nGiven this is a project maintained by volunteers, please read this template to not waste your time, or ours! 😁 -->\r\n\r\n# Summary\r\n\r\n<!-- Write a small summary about what is happening here. -->\r\nFor now, the context manager has been supported in requests lib, FYI https://github.com/psf/requests/blob/main/requests/models.py#L706-L711\r\n\r\nSo the people can use it more easy like\r\n\r\n```python\r\nwith requests.get('https://httpbin.org/get') as r:\r\n        # Do things with the response here.\r\n        r.raise_for_status()\r\n```\r\n\r\nSo I think it would be great to support context manager in httpx\r\n\r\n# Checklist\r\n\r\n- [x] I understand that this PR may be closed in case there was no previous discussion. (This doesn't apply to typos!)\r\n- [x] I've added a test for each change that was introduced, and I tried as much as possible to make a single atomic change.\r\n- [x] I've updated the documentation accordingly.\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "Zheaoli"
+              },
+              "created_at": "2023-05-23T09:02:04Z",
+              "updated_at": "2023-05-23T16:19:28Z",
+              "closed_at": "2023-05-23T09:16:12Z",
+              "comments": 5,
+              "comments_url": "https://api.github.com/repos/encode/httpx/issues/2714/comments",
+              "html_url": "https://github.com/encode/httpx/pull/2714",
+              "pull_request": {
+                "url": "https://api.github.com/repos/encode/httpx/pulls/2714",
+                "html_url": "https://github.com/encode/httpx/pull/2714",
+                "diff_url": "https://github.com/encode/httpx/pull/2714.diff",
+                "patch_url": "https://github.com/encode/httpx/pull/2714.patch",
+                "merged_at": null
+              }
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/encode/httpx/git/trees/HEAD?recursive=1"
+            },
+            "result": "60 files"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4513,
+          "output_tokens_est": 3590,
+          "total_tokens_est": 8103
+        },
+        "timestamp": "2026-05-18T22:11:55.686391"
+      },
+      "report_snippet": "**Summary**\nThis pull request proposes adding context manager support to the `Response` object in HTTPX, similar to the `requests` library.\n\n**Analysis**\nThe issue, identified as pull request #2714, is titled \"Support context manager in Response object\". The body explicitly requests this functionali",
+      "elapsed_s": 25.38,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T008",
+      "category": "happy_path",
+      "type": "stale",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Included recommendation"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "317e1d1d-83b5-49a4-a5eb-dd5ef861d5e3",
+        "issue_url": "https://github.com/psf/requests/issues/5811",
+        "launch_mode": null,
+        "task_hint": "stale",
+        "user_prompt": null,
+        "task_type": "stale",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "5811"
+          ],
+          "usernames": [
+            "MarkCBell"
+          ],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 2,
+          "grounded_facts": 2,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 30.76,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/psf/requests/issues/5811"
+            },
+            "result": {
+              "number": 5811,
+              "title": "Updated to new be-cordial-or-be-on-your-way URL and CoC now references Python Community CoC",
+              "body": "The current  documentation contains two references to Kenneth Reitz's \"Be Cordial or Be on Your Way\" but the URL for this has now changed. The PR replaces these with the current URL.",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "MarkCBell"
+              },
+              "created_at": "2021-05-06T19:37:35Z",
+              "updated_at": "2021-08-27T00:08:40Z",
+              "closed_at": "2021-05-07T16:54:38Z",
+              "comments": 6,
+              "comments_url": "https://api.github.com/repos/psf/requests/issues/5811/comments",
+              "html_url": "https://github.com/psf/requests/pull/5811",
+              "pull_request": {
+                "url": "https://api.github.com/repos/psf/requests/pulls/5811",
+                "html_url": "https://github.com/psf/requests/pull/5811",
+                "diff_url": "https://github.com/psf/requests/pull/5811.diff",
+                "patch_url": "https://github.com/psf/requests/pull/5811.patch",
+                "merged_at": "2021-05-07T16:54:38Z"
+              }
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/psf/requests/issues/5811/comments"
+            },
+            "result": "6 comments"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3984,
+          "output_tokens_est": 4941,
+          "total_tokens_est": 8925
+        },
+        "timestamp": "2026-05-18T22:12:21.071702"
+      },
+      "report_snippet": "**Summary**\nThis pull request updated documentation links and the Code of Conduct reference, and it has been merged and closed.\n\n**Analysis**\nThis issue, identified as pull request #5811, is a documentation update. The issue's title is \"Updated to new be-cordial-or-be-on-your-way URL and CoC now ref",
+      "elapsed_s": 30.76,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T009",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 1,
+      "max_points": 3,
+      "passed": false,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "FAIL: Expected type in ['documentation', 'docs'] (structured=question, report_substring_match=False)"
+      ],
+      "trajectory": {
+        "run_id": "16315b40-02a5-436c-aa24-c528f44807f9",
+        "issue_url": "https://github.com/pallets/flask/issues/5153",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "5153"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 31.5,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/5153"
+            },
+            "result": {
+              "number": 5153,
+              "title": "This is my first commit to flask project",
+              "body": "<!--\r\nBefore opening a PR, open a ticket describing the issue or feature the\r\nPR will address. Follow the steps in CONTRIBUTING.rst.\r\n\r\nReplace this comment with a description of the change. Describe how it\r\naddresses the linked ticket.\r\n-->\r\n\r\n<!--\r\nLink to relevant issues or previous PRs, one per line. Use \"fixes\" to\r\nautomatically close an issue.\r\n-->\r\n\r\n- fixes #<issue number>\r\n\r\n<!--\r\nEnsure each step in CONTRIBUTING.rst is complete by adding an \"x\" to\r\neach box below.\r\n\r\nIf only docs were changed, these aren't relevant and can be removed.\r\n-->\r\n\r\nChecklist:\r\n\r\n- [ ] Add tests that demonstrate the correct behavior of the change. Tests should fail without the change.\r\n- [ ] Add or update relevant docs, in the docs folder and in code.\r\n- [ ] Add an entry in `CHANGES.rst` summarizing the change and linking to the issue.\r\n- [ ] Add `.. versionchanged::` entries in any relevant code docs.\r\n- [ ] Run `pre-commit` hooks and fix any issues.\r\n- [ ] Run `pytest` and `tox`, no tests failed.\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "chlee1016"
+              },
+              "created_at": "2023-06-05T02:27:35Z",
+              "updated_at": "2023-06-20T00:05:02Z",
+              "closed_at": "2023-06-05T02:28:21Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/5153/comments",
+              "html_url": "https://github.com/pallets/flask/pull/5153",
+              "pull_request": {
+                "url": "https://api.github.com/repos/pallets/flask/pulls/5153",
+                "html_url": "https://github.com/pallets/flask/pull/5153",
+                "diff_url": "https://github.com/pallets/flask/pull/5153.diff",
+                "patch_url": "https://github.com/pallets/flask/pull/5153.patch",
+                "merged_at": null
+              }
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/pallets/flask/issues/5153"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4834,
+          "output_tokens_est": 5147,
+          "total_tokens_est": 9981
+        },
+        "timestamp": "2026-05-18T22:12:51.834083"
+      },
+      "report_snippet": "**Summary**\nThis issue is an empty Pull Request titled \"This is my first commit to flask project\", which was quickly closed after creation.\n\n**Analysis**\nThe issue, identified as Pull Request #5153, was opened by user `chlee1016` and contains the default Pull Request template with all descriptive fi",
+      "elapsed_s": 31.5,
+      "error": null,
+      "predicted_classification": "question"
+    },
+    {
+      "task_id": "T010",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 1,
+      "max_points": 3,
+      "passed": false,
+      "reasons": [
+        "PASS: Grounding check passed"
+      ],
+      "demerits": [
+        "FAIL: Expected type in ['bug', 'performance'] (structured=question, report_substring_match=False)"
+      ],
+      "trajectory": {
+        "run_id": "7bf6d547-1c49-49b3-b114-16e9ea01105b",
+        "issue_url": "https://github.com/tiangolo/sqlmodel/issues/215",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 24.26,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/tiangolo/sqlmodel/issues/215"
+            },
+            "result": {
+              "number": 215,
+              "title": "How do I integrate or use SQLModel with Pandas?",
+              "body": "### First Check\n\n- [X] I added a very descriptive title to this issue.\n- [X] I used the GitHub search to find a similar issue and didn't find it.\n- [X] I searched the SQLModel documentation, with the integrated search.\n- [X] I already searched in Google \"How to X in SQLModel\" and didn't find any information.\n- [X] I already read and followed all the tutorial in the docs and didn't find an answer.\n- [X] I already checked if it is not related to SQLModel but to [Pydantic](https://github.com/samuelcolvin/pydantic).\n- [X] I already checked if it is not related to SQLModel but to [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy).\n\n### Commit to Help\n\n- [X] I commit to help with one of those options 👆\n\n### Example Code\n\n```python\nimport pandas as pd\r\n\r\n\r\njobs_df = pd.read_csv('data/nyc-jobs.csv')\r\n\r\n# SQL Model starts from here\n```\n\n\n### Description\n\nI would like to ingest Pandas DataFrame to SQL using the SQLModel. I also would like to retrieve data back using Pandas and SQLModel. Is there a way for it?\n\n### Operating System\n\nLinux, Windows\n\n### Operating System Details\n\n_No response_\n\n### SQLModel Version\n\n0.0.6\n\n### Python Version\n\n3.9\n\n### Additional Context\n\n_No response_",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "question"
+                }
+              ],
+              "user": {
+                "login": "iudeen"
+              },
+              "created_at": "2022-01-04T18:24:29Z",
+              "updated_at": "2023-02-24T16:43:05Z",
+              "closed_at": "2022-01-07T18:41:19Z",
+              "comments": 7,
+              "comments_url": "https://api.github.com/repos/fastapi/sqlmodel/issues/215/comments",
+              "html_url": "https://github.com/fastapi/sqlmodel/issues/215",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/tiangolo/sqlmodel/issues/215"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4871,
+          "output_tokens_est": 3876,
+          "total_tokens_est": 8747
+        },
+        "timestamp": "2026-05-18T22:13:23.342780"
+      },
+      "report_snippet": "**Summary**\nThe user is asking for guidance on how to integrate SQLModel with Pandas for ingesting and retrieving data.\n\n**Analysis**\nThis issue is classified as a **question**. The title \"How do I integrate or use SQLModel with Pandas?\" and the description \"I would like to ingest Pandas DataFrame t",
+      "elapsed_s": 24.26,
+      "error": null,
+      "predicted_classification": "question"
+    },
+    {
+      "task_id": "T011",
+      "category": "happy_path",
+      "type": "duplicate",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed",
+        "PASS: Searched for similar issues"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "348f74b9-7751-4c64-b3fd-139d9141c4f4",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/2205",
+        "launch_mode": null,
+        "task_hint": "duplicate",
+        "user_prompt": null,
+        "task_type": "duplicate",
+        "tool_calls": 4,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "2205",
+            "15535",
+            "13175",
+            "12419",
+            "11215",
+            "1773"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 6,
+          "grounded_facts": 6,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 35.63,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/2205"
+            },
+            "result": {
+              "number": 2205,
+              "title": "Subclass fastapi.params.Security to extend JWT payload checks for route authorization(?)",
+              "body": "### First check\r\n\r\n* [x] I added a very descriptive title to this issue.\r\n* [x] I used the GitHub search to find a similar issue and didn't find it.\r\n* [x] I searched the FastAPI documentation, with the integrated search.\r\n* [x] I already searched in Google \"How to X in FastAPI\" and didn't find any information.\r\n* [x] I already read and followed all the tutorial in the docs and didn't find an answer.\r\n* [x] I already checked if it is not related to FastAPI but to [Pydantic](https://github.com/samuelcolvin/pydantic).\r\n* [x] I already checked if it is not related to FastAPI but to [Swagger UI](https://github.com/swagger-api/swagger-ui).\r\n* [x] I already checked if it is not related to FastAPI but to [ReDoc](https://github.com/Redocly/redoc).\r\n* [x] After submitting this, I commit to one of:\r\n    * Read open issues with questions until I find 2 issues where I can help someone and add a comment to help there.\r\n    * I already hit the \"watch\" button in this repository to receive notifications and I commit to help at least 2 people that ask questions in the future.\r\n    * Implement a Pull Request for a confirmed bug.\r\n\r\n### Example\r\n\r\nHere's a self-contained, minimal, reproducible, example with my use case:\r\n\r\n```Python\r\nimport logging\r\nfrom dataclasses import dataclass, field\r\nfrom enum import Enum, unique\r\nfrom typing import (\r\n    Any,\r\n    Callable,\r\n    List,\r\n    Mapping,\r\n    Optional,\r\n    Sequence,\r\n    Type,\r\n)\r\n\r\nimport requests\r\nfrom fastapi import (\r\n    APIRouter,\r\n    Depends,\r\n    FastAPI,\r\n    HTTPException,\r\n    status,\r\n)\r\nfrom fastapi.params import Security\r\nfrom fastapi.security.oauth2 import OAuth2AuthorizationCodeBearer\r\nfrom jose import jwt\r\nfrom jose.constants import ALGORITHMS\r\nfrom pydantic import BaseModel, BaseSettings\r\n\r\nlogger = logging.getLogger(__name__)\r\n\r\n\r\nclass Config(BaseSettings):\r\n    AUTH0_DOMAIN: str\r\n    AUTH0_AUDIENCE: str\r\n\r\n    class Config:\r\n        env_file = \".env\"\r\n        case_sensitive = True\r\n        validate_all = True\r\n        allow_mutation = False\r\n\r\n\r\nconfig = Config()\r\n\r\n\r\n@dataclass\r\nclass JwtPayload:\r\n    iss: str\r\n    sub: str\r\n    aud: List[str]\r\n    iat: int\r\n    exp: int\r\n    azp: str\r\n    scope: str\r\n    permissions: List[str] = field(default_factory=list)\r\n\r\n\r\n@unique\r\nclass Permission(Enum):\r\n    \"\"\"Enum values match permissions configured in Auth0\"\"\"\r\n    THING_READ = \"read:thing\"\r\n    THING_WRITE = \"write:thing\"\r\n\r\n\r\n@dataclass\r\nclass Auth0User:\r\n    token: str\r\n    payload: JwtPayload\r\n    permissions: List[Permission]\r\n\r\n    @property\r\n    def id(self) -> str:\r\n        return self.payload.sub\r\n\r\n    def has_permissions(self, permissions: List[Permission]) -> bool:\r\n        return bool(permissions) and all(p in self.permissions for p in permissions)\r\n\r\n\r\ndef get_permissions(payload: JwtPayload, all_permissions: Type[Permission]) -> List[Permission]:\r\n    \"\"\"Parse permission strings into corresponding Enums\"\"\"\r\n    permissions = []\r\n    available_permissions_map = {r.value: r for r in all_permissions}\r\n    for p_value in payload.permissions:\r\n        if p := available_permissions_map.get(p_value):\r\n            permissions.append(p)\r\n        else:\r\n            logger.warning(f\"unrecognized: {p_value}\")\r\n    return permissions\r\n\r\n\r\ndef get_jwk(domain: str, token: str) -> Optional[Mapping[str, Any]]:\r\n    \"\"\"Get pubkey associated with Auth0 account that matches token's KID\"\"\"\r\n    header = jwt.get_unverified_header(token)\r\n    jwks = requests.get(f\"https://{domain}/.well-known/jwks.json\").json()\r\n    return next((key for key in jwks[\"keys\"] if key.get(\"kid\") == header[\"kid\"]), None)\r\n\r\n\r\noauth2_scheme = OAuth2AuthorizationCodeBearer(\r\n    authorizationUrl=config.AUTH0_DOMAIN, tokenUrl=config.AUTH0_AUDIENCE,\r\n)\r\n\r\n\r\n# Question: does the value for `permissions` come from the route dependency? ex: Auth0Security(current_user, permissions=[Permission.THING_READ])\r\nasync def current_user(\r\n    permissions: Optional[Sequence[Permission]], token: str = Depends(oauth2_scheme)\r\n) -> Auth0User:\r\n    rsa_key = get_jwk(config.AUTH0_DOMAIN, token)\r\n    try:\r\n        payload = jwt.decode(\r\n            token,\r\n            rsa_key,\r\n            algorithms=[ALGORITHMS.RS256],\r\n            audience=config.AUTH0_AUDIENCE,\r\n            issuer=f\"https://{config.AUTH0_DOMAIN}\",\r\n        )\r\n    except Exception:\r\n        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=\"unauthorized\")\r\n\r\n    jwt_payload = JwtPayload(**payload)\r\n    user = Auth0User(\r\n        token=token, payload=jwt_payload, permissions=get_permissions(jwt_payload, Permission)\r\n    )\r\n\r\n    if permissions and not user.has_permissions(permissions):\r\n        raise HTTPException(\r\n            status_code=status.HTTP_401_UNAUTHORIZED, detail=\"insufficient permissions\",\r\n        )\r\n\r\n    return user\r\n\r\n\r\nclass Auth0SecurityParam(Security):\r\n    \"\"\"Following pattern like fastapi.params.Security\"\"\"\r\n    def __init__(\r\n        self,\r\n        dependency: Optional[Callable[..., Any]] = None,\r\n        *,\r\n        scopes: Optional[Sequence[str]] = None,\r\n        permissions: Optional[Sequence[Permission]] = None,\r\n        use_cache: bool = True,\r\n    ):\r\n        super().__init__(dependency=dependency, scopes=scopes, use_cache=use_cache)\r\n        self.permissions = list(permissions or [])\r\n\r\n\r\ndef Auth0Security(\r\n    dependency: Optional[Callable[..., Any]] = None,\r\n    *,\r\n    scopes: Optional[Sequence[str]] = None,\r\n    permissions: Optional[Sequence[Permission]] = None,\r\n    use_cache: bool = True,\r\n) -> Any:\r\n    \"\"\"Following pattern like fastapi.param_functions.Security\"\"\"\r\n    return Auth0SecurityParam(\r\n        dependency=dependency, scopes=scopes, permissions=permissions, use_cache=use_cache\r\n    )\r\n\r\n\r\nhello = APIRouter()\r\n\r\n\r\nclass OutModel(BaseModel):\r\n    hello: str\r\n\r\n\r\n@hello.get(\"/\", response_model=OutModel)\r\nasync def hello_world(\r\n    *, user: Auth0User = Auth0Security(current_user, permissions=[Permission.THING_READ]),\r\n):\r\n    return {\"hello\": \"world\"}\r\n\r\n\r\nrouter = APIRouter()\r\nrouter.include_router(hello, prefix=\"/hello\", tags=[\"hello\"])\r\n\r\napp = FastAPI()\r\napp.include_router(router, prefix=\"/v1\")\r\n```\r\n\r\n### Description\r\n\r\n[Auth0's core RBAC can include `permissions` in the JWT payload](https://auth0.com/docs/authorization/rbac/enable-role-based-access-control-for-apis) along with `scopes`. Given the documented ability to use [`Security(factory, scopes=[\"me\"])`](https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/#security-in-decorator-dependencies) as deps for a route, I thought it may be possible to subclass `Security` to extend this functionality to verify the `permissions` field of a JWT's payload. This doesn't appear to work as expected.\r\n\r\nShould this be possible? Or is there a different way that FastAPI recommends achieving this?\r\n\r\nAs commented in the minimal example: does the value for `permissions` come from the route dependency? ex: `Auth0Security(current_user, permissions=[Permission.THING_READ])`\r\n\r\n### Steps to reproduce\r\n\r\n* Open the browser and call the endpoint `/v1/hello` with a valid `Authorization: Bearer <jwt>` header that includes `\"permissions\":[\"read:thing\"]` in the token's payload\r\n* It returns 422: `{\"detail\":[{\"loc\":[\"body\"],\"msg\":\"field required\",\"type\":\"value_error.missing\"}]}`\r\n* But I expected it to return `{\"hello\": \"world\"}`.\r\n\r\n### Environment\r\n\r\n* OS: Linux\r\n* FastAPI Version: 0.61.1\r\n* Python version: 3.8.5\r\n\r\n### Additional context\r\n\r\n* I have been using Flask in production for years. I am trying-out FastAPI for the first time.\r\n",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "question"
+                },
+                {
+                  "name": "investigate"
+                },
+                {
+                  "name": "question-migrate"
+                }
+              ],
+              "user": {
+                "login": "cahna"
+              },
+              "created_at": "2020-10-20T00:15:16Z",
+              "updated_at": "2023-02-28T17:13:24Z",
+              "closed_at": "2023-02-28T17:13:24Z",
+              "comments": 6,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/2205/comments",
+              "html_url": "https://github.com/fastapi/fastapi/issues/2205",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "Subclass fastapi.params.Security to extend JWT payload checks for route authoriz"
+            },
+            "result": []
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "### First check\r\n\r\n* [x] I added a very descriptive title to"
+            },
+            "result": [
+              {
+                "number": 15535,
+                "title": "Broken optional orjson/ujson install can break importing fastapi.responses",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2026-05-16T00:03:29Z",
+                "updated_at": "2026-05-16T08:10:44Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/15535",
+                "score": 1.0
+              },
+              {
+                "number": 13175,
+                "title": "Duplicated OperationID when adding route with multiple methods",
+                "state": "closed",
+                "labels": [
+                  "question",
+                  "question-migrate"
+                ],
+                "created_at": "2025-01-08T08:52:57Z",
+                "updated_at": "2026-05-18T13:13:45Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/13175",
+                "score": 1.0
+              },
+              {
+                "number": 12419,
+                "title": "Question about \"Required, can be None\" parameter",
+                "state": "closed",
+                "labels": [
+                  "docs"
+                ],
+                "created_at": "2024-10-10T06:46:25Z",
+                "updated_at": "2026-05-18T13:19:30Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/12419",
+                "score": 1.0
+              },
+              {
+                "number": 11215,
+                "title": "Potential footgun when using custom `Response(background=<Task()>)` in conjunction with injected `BackgroundTasks` - the custom response overwrites the tasks",
+                "state": "closed",
+                "labels": [
+                  "question"
+                ],
+                "created_at": "2024-02-28T14:57:07Z",
+                "updated_at": "2026-05-18T13:07:26Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/11215",
+                "score": 1.0
+              },
+              {
+                "number": 1773,
+                "title": "Automatically support HEAD method for all GET routes, as Starlette does",
+                "state": "closed",
+                "labels": [
+                  "feature",
+                  "confirmed",
+                  "reviewed"
+                ],
+                "created_at": "2020-07-22T20:39:13Z",
+                "updated_at": "2026-05-18T13:00:06Z",
+                "html_url": "https://github.com/fastapi/fastapi/issues/1773",
+                "score": 1.0
+              }
+            ]
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "fastapi/fastapi",
+              "query": "question investigate question-migrate"
+            },
+            "result": []
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 11479,
+          "output_tokens_est": 4744,
+          "total_tokens_est": 16223
+        },
+        "timestamp": "2026-05-18T22:13:47.611946"
+      },
+      "report_snippet": "**Summary**\nIssue #2205 is a question or feature request concerning the extension of `fastapi.params.Security` for custom JWT payload checks and route authorization.\n\n**Analysis**\nThe issue is **not a duplicate**. The duplicate analysis indicates high confidence in this finding. The reasoning provid",
+      "elapsed_s": 35.63,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T012",
+      "category": "happy_path",
+      "type": "code_area",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: No clear module identified"
+      ],
+      "trajectory": {
+        "run_id": "a5a3be85-c4cd-4100-9e9d-7a67c319c08f",
+        "issue_url": "https://github.com/pallets/flask/issues/4999",
+        "launch_mode": null,
+        "task_hint": "code_area",
+        "user_prompt": null,
+        "task_type": "code_area",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 21.88,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/4999"
+            },
+            "result": {
+              "number": 4999,
+              "title": "Ted spinks patch 2",
+              "body": "<!--\r\nBefore opening a PR, open a ticket describing the issue or feature the\r\nPR will address. Follow the steps in CONTRIBUTING.rst.\r\n\r\nReplace this comment with a description of the change. Describe how it\r\naddresses the linked ticket.\r\n-->\r\n\r\n<!--\r\nLink to relevant issues or previous PRs, one per line. Use \"fixes\" to\r\nautomatically close an issue.\r\n-->\r\n\r\n- fixes #<issue number>\r\n\r\n<!--\r\nEnsure each step in CONTRIBUTING.rst is complete by adding an \"x\" to\r\neach box below.\r\n\r\nIf only docs were changed, these aren't relevant and can be removed.\r\n-->\r\n\r\nChecklist:\r\n\r\n- [ ] Add tests that demonstrate the correct behavior of the change. Tests should fail without the change.\r\n- [ ] Add or update relevant docs, in the docs folder and in code.\r\n- [ ] Add an entry in `CHANGES.rst` summarizing the change and linking to the issue.\r\n- [ ] Add `.. versionchanged::` entries in any relevant code docs.\r\n- [ ] Run `pre-commit` hooks and fix any issues.\r\n- [ ] Run `pytest` and `tox`, no tests failed.\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "TedSpinks"
+              },
+              "created_at": "2023-02-23T20:37:37Z",
+              "updated_at": "2023-03-10T00:06:27Z",
+              "closed_at": "2023-02-23T20:38:08Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/4999/comments",
+              "html_url": "https://github.com/pallets/flask/pull/4999",
+              "pull_request": {
+                "url": "https://api.github.com/repos/pallets/flask/pulls/4999",
+                "html_url": "https://github.com/pallets/flask/pull/4999",
+                "diff_url": "https://github.com/pallets/flask/pull/4999.diff",
+                "patch_url": "https://github.com/pallets/flask/pull/4999.patch",
+                "merged_at": null
+              }
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/pallets/flask/git/trees/HEAD?recursive=1"
+            },
+            "result": "83 files"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4805,
+          "output_tokens_est": 3168,
+          "total_tokens_est": 7973
+        },
+        "timestamp": "2026-05-18T22:14:23.251417"
+      },
+      "report_snippet": "**Summary**\nThis pull request, titled \"Ted spinks patch 2\", was opened with an empty description and was subsequently closed.\n\n**Analysis**\nThe pull request body consists entirely of the default Pull Request template, lacking any description of the proposed changes, the problem it addresses, or a li",
+      "elapsed_s": 21.88,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T013",
+      "category": "ambiguous",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "b548bfa3-6e23-428f-95a6-92ea0034c5a8",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/10001",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "10001"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 22.42,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/10001"
+            },
+            "result": {
+              "number": 10001,
+              "title": "🔧 Restore MkDocs Material pin after the fix",
+              "body": "🔧 Restore MkDocs Material pin after the fix",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "tiangolo"
+              },
+              "created_at": "2023-08-03T20:31:40Z",
+              "updated_at": "2023-08-04T17:47:44Z",
+              "closed_at": "2023-08-04T17:47:43Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/10001/comments",
+              "html_url": "https://github.com/fastapi/fastapi/pull/10001",
+              "pull_request": {
+                "url": "https://api.github.com/repos/fastapi/fastapi/pulls/10001",
+                "html_url": "https://github.com/fastapi/fastapi/pull/10001",
+                "diff_url": "https://github.com/fastapi/fastapi/pull/10001.diff",
+                "patch_url": "https://github.com/fastapi/fastapi/pull/10001.patch",
+                "merged_at": "2023-08-04T17:47:43Z"
+              }
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/fastapi/fastapi/issues/10001"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3267,
+          "output_tokens_est": 3248,
+          "total_tokens_est": 6515
+        },
+        "timestamp": "2026-05-18T22:14:45.134817"
+      },
+      "report_snippet": "## Triage Report for Issue #10001\n\n### Summary\nThis issue, titled \"🔧 Restore MkDocs Material pin after the fix\", is a follow-up task to re-pin a dependency after a previous problem was resolved.\n\n### Analysis\nThis issue is classified as a **feature**. The title and body explicitly state an action to",
+      "elapsed_s": 22.42,
+      "error": null,
+      "predicted_classification": "feature"
+    },
+    {
+      "task_id": "T014",
+      "category": "ambiguous",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "6a240dea-c90e-4490-8ac6-ee692bf461dc",
+        "issue_url": "https://github.com/pallets/flask/issues/4050",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 27.35,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/4050"
+            },
+            "result": {
+              "number": 4050,
+              "title": "AttributeError: 'module' object has no attribute 'fspath'",
+              "body": "`AttributeError: 'module' object has no attribute 'fspath'` exception is thrown when running `app = flask.Flask(__name__)` for flask v1.13.\r\n\r\nVersion is Python 2.7 and 3.5. I realize `fspath` is only available for Python version >= 3.6 but there shouldn't be any breaking changes from Flask 1.1.2 => 1.1.3, so the classifiers [here](https://pypi.org/project/Flask/1.1.3/) are actually incorrect.",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "lzchen"
+              },
+              "created_at": "2021-05-14T01:11:41Z",
+              "updated_at": "2021-05-29T00:14:03Z",
+              "closed_at": "2021-05-14T01:20:00Z",
+              "comments": 3,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/4050/comments",
+              "html_url": "https://github.com/pallets/flask/issues/4050",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/pallets/flask/issues/4050"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3765,
+          "output_tokens_est": 4387,
+          "total_tokens_est": 8152
+        },
+        "timestamp": "2026-05-18T22:15:07.558442"
+      },
+      "report_snippet": "**Summary**\nThe issue reports an `AttributeError: 'module' object has no attribute 'fspath'` when initializing `flask.Flask` with Flask v1.1.3 on Python 2.7 and 3.5, indicating a compatibility problem.\n\n**Analysis**\nThis issue is classified as a **bug**. The user `lzchen` reported an `AttributeError",
+      "elapsed_s": 27.35,
+      "error": null,
+      "predicted_classification": "bug"
+    },
+    {
+      "task_id": "T015",
+      "category": "ambiguous",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "1213b031-6c25-4184-ab2a-515173a64c0c",
+        "issue_url": "https://github.com/encode/httpx/issues/1855",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 25.2,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/encode/httpx/issues/1855"
+            },
+            "result": {
+              "number": 1855,
+              "title": "Add cli support",
+              "body": "Something about the CLI support in #1845 is interacting weirdly with the CI and causing test failures, but I can't figure out what. This PR is to help debug that step-by-step.\r\n\r\n**Update**: Resolved. Needed to tweak one of the test cases.",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "lovelydinosaur"
+              },
+              "created_at": "2021-09-13T14:07:19Z",
+              "updated_at": "2024-06-11T00:52:04Z",
+              "closed_at": "2021-09-14T08:44:43Z",
+              "comments": 0,
+              "comments_url": "https://api.github.com/repos/encode/httpx/issues/1855/comments",
+              "html_url": "https://github.com/encode/httpx/pull/1855",
+              "pull_request": {
+                "url": "https://api.github.com/repos/encode/httpx/pulls/1855",
+                "html_url": "https://github.com/encode/httpx/pull/1855",
+                "diff_url": "https://github.com/encode/httpx/pull/1855.diff",
+                "patch_url": "https://github.com/encode/httpx/pull/1855.patch",
+                "merged_at": "2021-09-14T08:44:43Z"
+              }
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/encode/httpx/issues/1855"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3508,
+          "output_tokens_est": 3928,
+          "total_tokens_est": 7436
+        },
+        "timestamp": "2026-05-18T22:15:34.907179"
+      },
+      "report_snippet": "**Summary**\nThis issue, originally a pull request, reported test failures related to CLI support in CI, which was subsequently resolved by tweaking a test case.\n\n**Analysis**\nThe issue, titled \"Add cli support\" (number 1855), describes a problem where CLI support introduced in a previous pull reques",
+      "elapsed_s": 25.2,
+      "error": null,
+      "predicted_classification": "bug"
+    },
+    {
+      "task_id": "T016",
+      "category": "ambiguous",
+      "type": "stale",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "1309ede9-9ab8-481e-ac90-53bbd2c0ce8b",
+        "issue_url": "https://github.com/psf/requests/issues/6478",
+        "launch_mode": null,
+        "task_hint": "stale",
+        "user_prompt": null,
+        "task_type": "stale",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 26.46,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/psf/requests/issues/6478"
+            },
+            "result": {
+              "number": 6478,
+              "title": "Recent SSL Error - urllib3.exceptions.MaxRetryError",
+              "body": "Hi. \r\n\r\nI have 2 APIs on GCP, they're dockerized. I got communications between those 2 APIs. Lately one of them is throwing me an SSL error. \r\n\r\nHavent update anything, nor change any code. \r\n\r\nFirst error:\r\n\r\n```\r\nTraceback (most recent call last):\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/arbiter.py\", line 589, in spawn_worker\r\n    worker.init_process()\r\n  File \"/usr/local/lib/python3.9/site-packages/uvicorn/workers.py\", line 66, in init_process\r\n    super(UvicornWorker, self).init_process()\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py\", line 134, in init_process\r\n    self.load_wsgi()\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py\", line 146, in load_wsgi\r\n    self.wsgi = self.app.wsgi()\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/app/base.py\", line 67, in wsgi\r\n    self.callable = self.load()\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py\", line 58, in load\r\n    return self.load_wsgiapp()\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py\", line 48, in load_wsgiapp\r\n    return util.import_app(self.app_uri)\r\n  File \"/usr/local/lib/python3.9/site-packages/gunicorn/util.py\", line 359, in import_app\r\n    mod = importlib.import_module(module)\r\n  File \"/usr/local/lib/python3.9/importlib/__init__.py\", line 127, in import_module\r\n    return _bootstrap._gcd_import(name[level:], package, level)\r\n  File \"<frozen importlib._bootstrap>\", line 1030, in _gcd_import\r\n  File \"<frozen importlib._bootstrap>\", line 1007, in _find_and_load\r\n  File \"<frozen importlib._bootstrap>\", line 986, in _find_and_load_unlocked\r\n  File \"<frozen importlib._bootstrap>\", line 680, in _load_unlocked\r\n  File \"<frozen importlib._bootstrap_external>\", line 850, in exec_module\r\n  File \"<frozen importlib._bootstrap>\", line 228, in _call_with_frames_removed\r\n  File \"/Main.py\", line 2, in <module>\r\n    from Routes.ShippingRoute import shippingRouter\r\n  File \"/Routes/ShippingRoute.py\", line 10, in <module>\r\n    from Storage.GBucket import uploadToBucket\r\n  File \"/Storage/GBucket.py\", line 13, in <module>\r\n    bucket = gcsStorageClient.get_bucket(BUCKET_NAME)\r\n  File \"/usr/local/lib/python3.9/site-packages/google/cloud/storage/client.py\", line 767, in get_bucket\r\n    bucket.reload(\r\n  File \"/usr/local/lib/python3.9/site-packages/google/cloud/storage/bucket.py\", line 1086, in reload\r\n    super(Bucket, self).reload(\r\n  File \"/usr/local/lib/python3.9/site-packages/google/cloud/storage/_helpers.py\", line 246, in reload\r\n    api_response = client._get_resource(\r\n  File \"/usr/local/lib/python3.9/site-packages/google/cloud/storage/client.py\", line 372, in _get_resource\r\n    return self._connection.api_request(\r\n  File \"/usr/local/lib/python3.9/site-packages/google/cloud/storage/_http.py\", line 72, in api_request\r\n    return call()\r\n  File \"/usr/local/lib/python3.9/site-packages/google/api_core/retry.py\", line 349, in retry_wrapped_func\r\n    return retry_target(\r\n  File \"/usr/local/lib/python3.9/site-packages/google/api_core/retry.py\", line 207, in retry_target\r\n    raise exceptions.RetryError(\r\ngoogle.api_core.exceptions.RetryError: Deadline of 120.0s exceeded while calling target function, last exception: HTTPSConnectionPool(host='oauth2.googleapis.com', port=443): Max retries exceeded with url: /token (Caused by SSLError(SSLZeroReturnError(6, 'TLS/SSL connection has been closed (EOF) (_ssl.c:1129)')))\"\r\n```\r\n\r\nSecond Error: \r\n\r\n```\r\n\"Traceback (most recent call last):\r\n  File \"/usr/local/lib/python3.9/site-packages/requests/adapters.py\", line 486, in send\r\n    resp = conn.urlopen(\r\n  File \"/usr/local/lib/python3.9/site-packages/urllib3/connectionpool.py\", line 844, in urlopen\r\n    retries = retries.increment(\r\n  File \"/usr/local/lib/python3.9/site-packages/urllib3/util/retry.py\", line 515, in increment\r\n    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]\r\nurllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='myApiUrl', port=443): Max retries exceeded with url: /updateOrders (Caused by SSLError(SSLZeroReturnError(6, 'TLS/SSL connection has been closed (EOF) (_ssl.c:1129)')))\"\r\n```\r\n\r\nRequirements File:\r\n\r\n```\r\n-i https://pypi.org/simple\r\nanyio==3.6.2\r\ncachetools==5.2.1\r\ncertifi==2022.12.7\r\ncffi==1.15.1\r\ncharset-normalizer==3.0.1\r\nclick==8.1.3\r\ncolorama==0.4.6\r\ncryptography==40.0.1\r\nfastapi==0.89.1\r\nfuzzywuzzy==0.18.0\r\ngoogle-api-core==2.11.0\r\ngoogle-auth==2.16.0\r\ngoogle-cloud-core==2.3.2\r\ngoogle-cloud-storage==2.7.0\r\ngoogle-crc32c==1.5.0\r\ngoogle-resumable-media==2.4.0\r\ngoogleapis-common-protos==1.58.0\r\ngreenlet==2.0.1\r\ngunicorn==20.1.0\r\nh11==0.14.0\r\nidna==3.4\r\nlevenshtein==0.20.9\r\nndg-httpsclient==0.5.1\r\nnumpy==1.24.2\r\npandas==1.5.3\r\nprotobuf==4.21.12\r\npyasn1==0.4.8\r\npyasn1-modules==0.2.8\r\npycparser==2.21\r\npydantic==1.10.4\r\npymysql==1.0.2\r\npyopenssl==23.1.1\r\npypdf==3.2.1\r\npython-dateutil==2.8.2\r\npython-dotenv==0.21.0\r\npython-levenshtein==0.20.9\r\npython-multipart==0.0.5\r\npytz==2022.7.1\r\nrapidfuzz==2.13.7\r\nrequests==2.31.0\r\nrsa==4.9\r\nsetuptools==68.0.0 ; python_version >= '3.7'\r\nsix==1.16.0\r\nsniffio==1.3.0\r\nsqlalchemy==1.4.46\r\nstarlette==0.22.0\r\nsuds==1.1.2\r\ntyping-extensions==4.4.0\r\nunidecode==1.3.6\r\nurllib3==2.0.3\r\nuvicorn==0.20.0\r\n```\r\n\r\nIt started happening like 2 weeks ago. Already downgraded pyton version, requests version, pyopenssl version, nothing seems to work.\r\n\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "DanielVelezV"
+              },
+              "created_at": "2023-07-04T14:45:18Z",
+              "updated_at": "2024-07-24T00:03:30Z",
+              "closed_at": "2023-07-04T18:36:37Z",
+              "comments": 4,
+              "comments_url": "https://api.github.com/repos/psf/requests/issues/6478/comments",
+              "html_url": "https://github.com/psf/requests/issues/6478",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/psf/requests/issues/6478/comments"
+            },
+            "result": "4 comments"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 10195,
+          "output_tokens_est": 3994,
+          "total_tokens_est": 14189
+        },
+        "timestamp": "2026-05-18T22:16:00.114676"
+      },
+      "report_snippet": "**Summary**\nThis issue reports a `urllib3.exceptions.MaxRetryError` with an SSL error occurring between two dockerized APIs on GCP without recent code changes.\n\n**Analysis**\nThe issue, titled \"Recent SSL Error - urllib3.exceptions.MaxRetryError\", describes an SSL error encountered between two docker",
+      "elapsed_s": 26.46,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T017",
+      "category": "ambiguous",
+      "type": "duplicate",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "7a9d7496-7ce1-4b07-9e99-fcaa5b418820",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/3555",
+        "launch_mode": null,
+        "task_hint": "duplicate",
+        "user_prompt": null,
+        "task_type": "not_found",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 2.86,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:16:26.578079"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://github.com/fastapi/fastapi/issues/3555\n**Error:** Issue not found: https://github.com/fastapi/fastapi/issues/3555\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try again.",
+      "elapsed_s": 2.86,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T018",
+      "category": "adversarial",
+      "type": "any",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Correctly reported not found"
+      ],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "2070abbd-b113-4918-9003-4857752797a3",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/9999999",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "not_found",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 2.79,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:16:29.443784"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://github.com/fastapi/fastapi/issues/9999999\n**Error:** Issue not found: https://github.com/fastapi/fastapi/issues/9999999\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try again.",
+      "elapsed_s": 2.79,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T019",
+      "category": "adversarial",
+      "type": "any",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "bfff09ec-c2c1-49ba-92e2-e49d52ab6354",
+        "issue_url": "https://github.com/not-a-real-url",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "invalid",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 1.0,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:16:32.231612"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://github.com/not-a-real-url\n**Error:** Invalid GitHub issue URL: https://github.com/not-a-real-url. Expected format: https://github.com/owner/repo/issues/N\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try again.",
+      "elapsed_s": 1.0,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T020",
+      "category": "adversarial",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "06259f0d-98ab-428a-8f8f-ae5dfe293af9",
+        "issue_url": "https://github.com/encode/httpx/issues/1234",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 1,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 11.69,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/encode/httpx/issues/1234"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 1562,
+          "output_tokens_est": 1264,
+          "total_tokens_est": 2826
+        },
+        "timestamp": "2026-05-18T22:16:33.229543"
+      },
+      "report_snippet": "**Summary**\nThe issue body is empty, preventing a confident classification of the issue.\n\n**Analysis**\nThe issue is classified as a question with low priority and low confidence. This classification is due to the empty issue body, which provides no content for a definitive assessment.\n\n**Recommendat",
+      "elapsed_s": 11.7,
+      "error": null,
+      "predicted_classification": "question"
+    },
+    {
+      "task_id": "T021",
+      "category": "should_refuse",
+      "type": "out_of_scope",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "ce9cec1a-e850-4d6b-b410-b87b882d69c7",
+        "issue_url": "https://github.com/fastapi/fastapi/pull/10000",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "invalid",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 1.01,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:16:44.927732"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://github.com/fastapi/fastapi/pull/10000\n**Error:** Invalid GitHub issue URL: https://github.com/fastapi/fastapi/pull/10000. Expected format: https://github.com/owner/repo/issues/N\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try again.",
+      "elapsed_s": 1.01,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T022",
+      "category": "should_refuse",
+      "type": "out_of_scope",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "48956a27-7540-40b6-bc2d-ac522da15011",
+        "issue_url": "https://github.com/pallets/flask/issues/5000",
+        "launch_mode": null,
+        "task_hint": "close this issue as won't fix",
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "5000"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 27.02,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/5000"
+            },
+            "result": {
+              "number": 5000,
+              "title": "Test2",
+              "body": "<!--\r\nBefore opening a PR, open a ticket describing the issue or feature the\r\nPR will address. Follow the steps in CONTRIBUTING.rst.\r\n\r\nReplace this comment with a description of the change. Describe how it\r\naddresses the linked ticket.\r\n-->\r\n\r\n<!--\r\nLink to relevant issues or previous PRs, one per line. Use \"fixes\" to\r\nautomatically close an issue.\r\n-->\r\n\r\n- fixes #<issue number>\r\n\r\n<!--\r\nEnsure each step in CONTRIBUTING.rst is complete by adding an \"x\" to\r\neach box below.\r\n\r\nIf only docs were changed, these aren't relevant and can be removed.\r\n-->\r\n\r\nChecklist:\r\n\r\n- [ ] Add tests that demonstrate the correct behavior of the change. Tests should fail without the change.\r\n- [ ] Add or update relevant docs, in the docs folder and in code.\r\n- [ ] Add an entry in `CHANGES.rst` summarizing the change and linking to the issue.\r\n- [ ] Add `.. versionchanged::` entries in any relevant code docs.\r\n- [ ] Run `pre-commit` hooks and fix any issues.\r\n- [ ] Run `pytest` and `tox`, no tests failed.\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "TedSpinks"
+              },
+              "created_at": "2023-02-23T22:03:29Z",
+              "updated_at": "2023-03-10T00:06:28Z",
+              "closed_at": "2023-02-23T22:04:13Z",
+              "comments": 0,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/5000/comments",
+              "html_url": "https://github.com/pallets/flask/pull/5000",
+              "pull_request": {
+                "url": "https://api.github.com/repos/pallets/flask/pulls/5000",
+                "html_url": "https://github.com/pallets/flask/pull/5000",
+                "diff_url": "https://github.com/pallets/flask/pull/5000.diff",
+                "patch_url": "https://github.com/pallets/flask/pull/5000.patch",
+                "merged_at": null
+              }
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/pallets/flask/issues/5000"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4953,
+          "output_tokens_est": 4142,
+          "total_tokens_est": 9095
+        },
+        "timestamp": "2026-05-18T22:16:45.937122"
+      },
+      "report_snippet": "**Summary**\nIssue #5000, titled \"Test2\", is an empty pull request template that has been classified as a question due to its lack of substantive content.\n\n**Analysis**\nThe issue body (number 5000) consists entirely of a pull request template, including placeholders for a \"description of the change\" ",
+      "elapsed_s": 27.02,
+      "error": null,
+      "predicted_classification": "question"
+    },
+    {
+      "task_id": "T023",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Correct type detected (['bug', 'security'])"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "9a094978-b6d1-4e24-a2b9-9d4e10f459d1",
+        "issue_url": "https://github.com/psf/requests/issues/5850",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [
+            "com/psf/requests/blob/5855dd711f0ab9c9c4782574b8814b1e4c7f98cc/requests/utils.py"
+          ],
+          "urls": [
+            "https://github.com/psf/requests/blob/5855dd711f0ab9c9c4782574b8814b1e4c7f98cc/requests/utils.py#L245-L248"
+          ],
+          "invented": [],
+          "total_facts": 2,
+          "grounded_facts": 2,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 23.43,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/psf/requests/issues/5850"
+            },
+            "result": {
+              "number": 5850,
+              "title": "Infinite loop when verify is invalid UNC path",
+              "body": "When an invalid UNC path is passed to `requests.utils.extract_zipped_paths` it results in an infinite loop\r\n\r\n## Expected Result\r\n\r\nFor `extract_zipped_paths` to return the path and an Exception to be thrown when the cert path is checked prior to verification being attempted.\r\n\r\n## Actual Result\r\n\r\nCode gets stuck looping here \r\nhttps://github.com/psf/requests/blob/5855dd711f0ab9c9c4782574b8814b1e4c7f98cc/requests/utils.py#L245-L248\r\n\r\n## Reproduction Steps\r\n\r\n```python\r\nimport requests.utils\r\nrequests.utils.extract_zipped_paths(r\"\\\\localhost\\a\\b\\c\")  # Assumes this path is invalid on testing machine\r\n\r\n```\r\n\r\n## System Information\r\n\r\n    $ python -m requests.help\r\n\r\n```\r\n{\r\n  \"chardet\": {\r\n    \"version\": \"4.0.0\"\r\n  },\r\n  \"cryptography\": {\r\n    \"version\": \"3.4.7\"\r\n  },\r\n  \"idna\": {\r\n    \"version\": \"2.10\"\r\n  },\r\n  \"implementation\": {\r\n    \"name\": \"CPython\",\r\n    \"version\": \"3.8.10\"\r\n  },\r\n  \"platform\": {\r\n    \"release\": \"10\",\r\n    \"system\": \"Windows\"\r\n  },\r\n  \"pyOpenSSL\": {\r\n    \"openssl_version\": \"101010bf\",\r\n    \"version\": \"20.0.1\"\r\n  },\r\n  \"requests\": {\r\n    \"version\": \"2.25.1\"\r\n  },\r\n  \"system_ssl\": {\r\n    \"version\": \"101010bf\"\r\n  },\r\n  \"urllib3\": {\r\n    \"version\": \"1.26.4\"\r\n  },\r\n  \"using_pyopenssl\": true\r\n}\r\n\r\n```\r\n\r\nThis command is only available on Requests v2.16.4 and greater. Otherwise,\r\nplease provide some basic information about your system (Python version,\r\noperating system, &c).\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "tl-hbk"
+              },
+              "created_at": "2021-06-29T19:49:07Z",
+              "updated_at": "2021-11-01T01:22:15Z",
+              "closed_at": "2021-08-03T00:40:35Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/psf/requests/issues/5850/comments",
+              "html_url": "https://github.com/psf/requests/issues/5850",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/psf/requests/issues/5850"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 6124,
+          "output_tokens_est": 3544,
+          "total_tokens_est": 9668
+        },
+        "timestamp": "2026-05-18T22:17:12.964329"
+      },
+      "report_snippet": "**Summary**\nThe issue reports an infinite loop in `requests.utils.extract_zipped_paths` when an invalid UNC path is passed as the `verify` argument on Windows.\n\n**Analysis**\nThis issue is classified as a **bug**. The problem manifests as an \"Infinite loop when verify is invalid UNC path\" in the `req",
+      "elapsed_s": 23.43,
+      "error": null,
+      "predicted_classification": "bug"
+    },
+    {
+      "task_id": "T024",
+      "category": "happy_path",
+      "type": "stale",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Included recommendation"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "82dd413f-08c7-4b19-848e-1c1b19669274",
+        "issue_url": "https://github.com/tiangolo/sqlmodel/issues/52",
+        "launch_mode": null,
+        "task_hint": "stale",
+        "user_prompt": null,
+        "task_type": "stale",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "52"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 44.99,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/tiangolo/sqlmodel/issues/52"
+            },
+            "result": {
+              "number": 52,
+              "title": "SQLModel doesn't raise ValidationError",
+              "body": "### First Check\n\n- [X] I added a very descriptive title to this issue.\n- [X] I used the GitHub search to find a similar issue and didn't find it.\n- [X] I searched the SQLModel documentation, with the integrated search.\n- [X] I already searched in Google \"How to X in SQLModel\" and didn't find any information.\n- [X] I already read and followed all the tutorial in the docs and didn't find an answer.\n- [X] I already checked if it is not related to SQLModel but to [Pydantic](https://github.com/samuelcolvin/pydantic).\n- [X] I already checked if it is not related to SQLModel but to [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy).\n\n### Commit to Help\n\n- [X] I commit to help with one of those options 👆\n\n### Example Code\n\n```python\nfrom typing import Optional\r\n\r\nfrom pydantic import BaseModel\r\nfrom sqlmodel import Field, SQLModel\r\n\r\nclass User1(SQLModel, table=True):\r\n    id: Optional[int] = Field(primary_key=True)\r\n    name: str\r\n\r\nclass User2(BaseModel):\r\n    name: str\r\n\r\nUser1()\r\nUser2()\n```\n\n\n### Description\n\n* Create SQLModel\r\n* Create equivalent pydantic model\r\n* Create instance of SQLModel without providing required arguments\r\n* Create instance of pydantic model without providing required arguments \r\n\r\nThe pydantic model raises an ValidationError whereas the SQLModel doesn't raise a ValidationError even though an required argument is not provided. I would expect a ValidationError if not all required arguments is provided.\n\n### Operating System\n\nmacOS\n\n### Operating System Details\n\n_No response_\n\n### SQLModel Version\n\n0.0.4\n\n### Python Version\n\nPython 3.8.5\n\n### Additional Context\n\n_No response_",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "question"
+                },
+                {
+                  "name": "answered"
+                }
+              ],
+              "user": {
+                "login": "elben10"
+              },
+              "created_at": "2021-08-28T12:22:40Z",
+              "updated_at": "2026-04-04T15:49:00Z",
+              "closed_at": "2022-11-15T08:29:27Z",
+              "comments": 56,
+              "comments_url": "https://api.github.com/repos/fastapi/sqlmodel/issues/52/comments",
+              "html_url": "https://github.com/fastapi/sqlmodel/issues/52",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/fastapi/sqlmodel/issues/52/comments"
+            },
+            "result": "30 comments"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 6274,
+          "output_tokens_est": 7382,
+          "total_tokens_est": 13656
+        },
+        "timestamp": "2026-05-18T22:17:36.398020"
+      },
+      "report_snippet": "**Summary**\nSQLModel issue #52, concerning the absence of `ValidationError` upon instantiation for missing required fields, is still highly relevant despite being closed, due to ongoing user confusion and discussion about default validation behavior.\n\n**Analysis**\nIssue #52, titled \"SQLModel doesn't",
+      "elapsed_s": 44.99,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T025",
+      "category": "happy_path",
+      "type": "duplicate",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Searched for similar issues"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "947f8aa8-a0db-42bf-8ac8-04b9c7e96d08",
+        "issue_url": "https://github.com/pallets/flask/issues/4765",
+        "launch_mode": null,
+        "task_hint": "duplicate",
+        "user_prompt": null,
+        "task_type": "duplicate",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "4765",
+            "5729",
+            "4714",
+            "4421"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 4,
+          "grounded_facts": 4,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 30.52,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/pallets/flask/issues/4765"
+            },
+            "result": {
+              "number": 4765,
+              "title": "fix model parameter is missing",
+              "body": "missing argument in example code\r\n",
+              "state": "closed",
+              "labels": [],
+              "user": {
+                "login": "sattamjh"
+              },
+              "created_at": "2022-08-15T09:13:53Z",
+              "updated_at": "2022-08-30T00:06:56Z",
+              "closed_at": "2022-08-15T14:35:33Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/pallets/flask/issues/4765/comments",
+              "html_url": "https://github.com/pallets/flask/pull/4765",
+              "pull_request": {
+                "url": "https://api.github.com/repos/pallets/flask/pulls/4765",
+                "html_url": "https://github.com/pallets/flask/pull/4765",
+                "diff_url": "https://github.com/pallets/flask/pull/4765.diff",
+                "patch_url": "https://github.com/pallets/flask/pull/4765.patch",
+                "merged_at": null
+              }
+            }
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "pallets/flask",
+              "query": "fix model parameter is missing"
+            },
+            "result": []
+          },
+          {
+            "tool": "search_similar_issues",
+            "args": {
+              "repo": "pallets/flask",
+              "query": "missing argument in example code\r\n"
+            },
+            "result": [
+              {
+                "number": 5729,
+                "title": "The `template_filter` decorator doesn't work if you don't pass an argument",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2025-05-12T08:33:00Z",
+                "updated_at": "2025-09-03T00:08:07Z",
+                "html_url": "https://github.com/pallets/flask/issues/5729",
+                "score": 1.0
+              },
+              {
+                "number": 4714,
+                "title": "deprecate `FLASK_ENV`",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2022-07-30T14:22:47Z",
+                "updated_at": "2022-08-21T00:06:59Z",
+                "html_url": "https://github.com/pallets/flask/issues/4714",
+                "score": 1.0
+              },
+              {
+                "number": 4421,
+                "title": "Problems with blueprint registration",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2022-01-17T19:34:28Z",
+                "updated_at": "2022-02-01T00:04:38Z",
+                "html_url": "https://github.com/pallets/flask/issues/4421",
+                "score": 1.0
+              },
+              {
+                "number": 2900,
+                "title": "avoid creating a new app context when using json argument in test client",
+                "state": "closed",
+                "labels": [
+                  "testing",
+                  "json"
+                ],
+                "created_at": "2018-09-02T01:36:15Z",
+                "updated_at": "2020-11-14T02:33:09Z",
+                "html_url": "https://github.com/pallets/flask/issues/2900",
+                "score": 1.0
+              },
+              {
+                "number": 491,
+                "title": "host_matching is in Werkzeug since 0.7 but not in Flask",
+                "state": "closed",
+                "labels": [],
+                "created_at": "2012-04-13T20:19:57Z",
+                "updated_at": "2020-11-14T04:32:55Z",
+                "html_url": "https://github.com/pallets/flask/issues/491",
+                "score": 1.0
+              }
+            ]
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 4562,
+          "output_tokens_est": 4341,
+          "total_tokens_est": 8903
+        },
+        "timestamp": "2026-05-18T22:18:21.391890"
+      },
+      "report_snippet": "**Summary**\nIssue #4765, a closed pull request, is not a duplicate of other identified issues with low confidence.\n\n**Analysis**\nIssue #4765 is a closed pull request titled \"fix model parameter is missing\" with the body \"missing argument in example code\". The issue is classified as not a duplicate (",
+      "elapsed_s": 30.52,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T026",
+      "category": "ambiguous",
+      "type": "code_area",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "0c69ec6d-6411-4399-b84c-ea6d6ee74d34",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/7143",
+        "launch_mode": null,
+        "task_hint": "code_area",
+        "user_prompt": null,
+        "task_type": "not_found",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 3.44,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:18:51.914596"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://github.com/fastapi/fastapi/issues/7143\n**Error:** Issue not found: https://github.com/fastapi/fastapi/issues/7143\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try again.",
+      "elapsed_s": 3.44,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T027",
+      "category": "happy_path",
+      "type": "classify",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Grounding check passed",
+        "PASS: Correct type detected (['question'])"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "d03d5a4c-4cc9-4057-8f55-5edde8fee86a",
+        "issue_url": "https://github.com/encode/httpx/issues/2100",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "stale",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [
+            "2100"
+          ],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 1,
+          "grounded_facts": 1,
+          "facts_grounded_rate": 1.0,
+          "passed": true
+        },
+        "duration_s": 29.24,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/encode/httpx/issues/2100"
+            },
+            "result": {
+              "number": 2100,
+              "title": "Bump flake8-bugbear from 21.9.2 to 22.1.11",
+              "body": "Bumps [flake8-bugbear](https://github.com/PyCQA/flake8-bugbear) from 21.9.2 to 22.1.11.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a href=\"https://github.com/PyCQA/flake8-bugbear/releases\">flake8-bugbear's releases</a>.</em></p>\n<blockquote>\n<h2>22.1.11</h2>\n<ul>\n<li>B018: Ignore JoinedStr (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/216\">#216</a>)</li>\n<li>Build universal Python 3 wheels (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/214\">#214</a>)</li>\n<li>B950: Add same special cases as E501 (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/213\">#213</a>)</li>\n</ul>\n<h2>21.11.29</h2>\n<ul>\n<li>B018: Disable strings from check for now (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/209\">#209</a>)</li>\n</ul>\n<h2>21.11.28</h2>\n<ul>\n<li>B904: ensure the raise is in the same context with the except (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/191\">#191</a>)</li>\n<li>Add Option to extend the list of immutable calls (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/204\">#204</a>)</li>\n<li>Update B014: <code>binascii.Error</code> is now treated as a subclass of <code>ValueError</code> (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/206\">#206</a>)</li>\n<li>add simple pre-commit config (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/205\">#205</a>)</li>\n<li>Test with 3.10 official</li>\n<li>Add B018 check to find useless declarations (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/196\">#196</a>, <a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/202\">#202</a>)</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/1c47a162d4b2c41ada9164a12b536d6f49833d7e\"><code>1c47a16</code></a> Update version + Change Log for 22.1.11 release</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/b29f204f6b4cf31a570e33e6c856a8042feda425\"><code>b29f204</code></a> Update version to 22.1.2 for release</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/6fb81eef5819b775a53c5c2bcd8397b6ff372a4a\"><code>6fb81ee</code></a> Ignore JoinedStr for B018 (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/216\">#216</a>)</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/c0a9c878dd50b57e8f39f34b07f1730866c9d86d\"><code>c0a9c87</code></a> Build universal Python 3 wheels (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/214\">#214</a>)</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/2095bdd2293b5567ea1dbeb485cab7da13a2e2fe\"><code>2095bdd</code></a> Allow the same special cases for B950 as E501 (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/176\">#176</a>) (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/213\">#213</a>)</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/49aec1807ead4c7da7d055e20118563ed13b5201\"><code>49aec18</code></a> Update version + Change Log for 21.11.29 release (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/210\">#210</a>)</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/225f4e6a8b88c77ac543a894e57cf32f204147ea\"><code>225f4e6</code></a> Remove detection of strings in B018 (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/209\">#209</a>)</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/9e311d5af7ffd2bba272fc6471b8ecfe21bf1993\"><code>9e311d5</code></a> Fix 904 tests to expect on correct raise line</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/987e539cf7d786fd6feb6e0d07657d9c78548b27\"><code>987e539</code></a> Update CHANGES.md, black format, update to version 21.11.28 for release</li>\n<li><a href=\"https://github.com/PyCQA/flake8-bugbear/commit/9e14a8c9594eace788d0efba8baa9fd3587da2f0\"><code>9e14a8c</code></a> B904: ensure the raise is in the same context with the except (<a href=\"https://github-redirect.dependabot.com/PyCQA/flake8-bugbear/issues/191\">#191</a>)</li>\n<li>Additional commits viewable in <a href=\"https://github.com/PyCQA/flake8-bugbear/compare/21.9.2...22.1.11\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=flake8-bugbear&package-manager=pip&previous-version=21.9.2&new-version=22.1.11)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "dependencies"
+                }
+              ],
+              "user": {
+                "login": "dependabot[bot]"
+              },
+              "created_at": "2022-03-01T16:03:21Z",
+              "updated_at": "2022-03-04T19:07:53Z",
+              "closed_at": "2022-03-04T19:07:53Z",
+              "comments": 0,
+              "comments_url": "https://api.github.com/repos/encode/httpx/issues/2100/comments",
+              "html_url": "https://github.com/encode/httpx/pull/2100",
+              "pull_request": {
+                "url": "https://api.github.com/repos/encode/httpx/pulls/2100",
+                "html_url": "https://github.com/encode/httpx/pull/2100",
+                "diff_url": "https://github.com/encode/httpx/pull/2100.diff",
+                "patch_url": "https://github.com/encode/httpx/pull/2100.patch",
+                "merged_at": "2022-03-04T19:07:53Z"
+              }
+            }
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 9921,
+          "output_tokens_est": 5040,
+          "total_tokens_est": 14961
+        },
+        "timestamp": "2026-05-18T22:18:55.358593"
+      },
+      "report_snippet": "**Summary**\nIssue #2100, a request to bump the `flake8-bugbear` dependency, is considered stale due to its age and lack of activity.\n\n**Analysis**\nThis issue, titled \"Bump flake8-bugbear from 21.9.2 to 22.1.11\", was created in March 2022. It requests an update for the `flake8-bugbear` dependency. Th",
+      "elapsed_s": 29.24,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T028",
+      "category": "adversarial",
+      "type": "any",
+      "score": 2,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [
+        "WARN: Grounding validation failed (report vs tool evidence)"
+      ],
+      "trajectory": {
+        "run_id": "9ffa01ca-7a90-4390-8400-425672295691",
+        "issue_url": "https://gitlab.com/some-org/some-repo/-/issues/1",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "invalid",
+        "tool_calls": 0,
+        "grounding_passed": false,
+        "fact_check": null,
+        "duration_s": 1.22,
+        "error_count": 1,
+        "loop_count": 0,
+        "tool_results": [],
+        "token_usage_est": {
+          "input_tokens_est": 0,
+          "output_tokens_est": 0,
+          "total_tokens_est": 0
+        },
+        "timestamp": "2026-05-18T22:19:24.595753"
+      },
+      "report_snippet": "# Triage Failed\n\n**Issue:** https://gitlab.com/some-org/some-repo/-/issues/1\n**Error:** Invalid GitHub issue URL: https://gitlab.com/some-org/some-repo/-/issues/1. Expected format: https://github.com/owner/repo/issues/N\n**Tool calls used:** 0\n**Error count:** 1\n\nPlease check the issue URL and try ag",
+      "elapsed_s": 1.22,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T029",
+      "category": "happy_path",
+      "type": "code_area",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [
+        "PASS: Identified a module/component"
+      ],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "51576a2f-b5d2-400b-bb9b-c819c4275622",
+        "issue_url": "https://github.com/tiangolo/sqlmodel/issues/123",
+        "launch_mode": null,
+        "task_hint": "code_area",
+        "user_prompt": null,
+        "task_type": "code_area",
+        "tool_calls": 3,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 31.15,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/tiangolo/sqlmodel/issues/123"
+            },
+            "result": {
+              "number": 123,
+              "title": "engine singleton Built in SQLmodel or make my own ?",
+              "body": "### First Check\n\n- [X] I added a very descriptive title to this issue.\n- [X] I used the GitHub search to find a similar issue and didn't find it.\n- [X] I searched the SQLModel documentation, with the integrated search.\n- [X] I already searched in Google \"How to X in SQLModel\" and didn't find any information.\n- [X] I already read and followed all the tutorial in the docs and didn't find an answer.\n- [X] I already checked if it is not related to SQLModel but to [Pydantic](https://github.com/samuelcolvin/pydantic).\n- [X] I already checked if it is not related to SQLModel but to [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy).\n\n### Commit to Help\n\n- [X] I commit to help with one of those options 👆\n\n### Example Code\n\n```python\nArchitecture question, no code needed.\n```\n\n\n### Description\n\nI need the \"engine\" instance in my services and routers to create \"session\" to access the database?\r\n\r\n   # define this somewhere\r\n    engine = create_engine(sqlite_url, echo=False)\r\n    \r\n   # use this everywhere\r\n   session = Session(engine)\r\n\r\nAll samples are single file examples so no imports of engine.\r\n\r\nIt is unclear to me if SQLModel has a solution or should I create my own singleton to hold the engine instance. \r\n\r\nMy Flask background had me put the engine from SqlAlchemy to the app instance, is this prefred in FastApi (But not sure if I can import the app instance from main.py).\n\n### Operating System\n\nWindows\n\n### Operating System Details\n\n_No response_\n\n### SQLModel Version\n\n0.0.4\n\n### Python Version\n\n3.9.7\n\n### Additional Context\n\n_No response_",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "question"
+                }
+              ],
+              "user": {
+                "login": "SteffRainville"
+              },
+              "created_at": "2021-10-05T18:08:31Z",
+              "updated_at": "2025-08-13T08:42:15Z",
+              "closed_at": "2025-08-13T08:42:15Z",
+              "comments": 1,
+              "comments_url": "https://api.github.com/repos/fastapi/sqlmodel/issues/123/comments",
+              "html_url": "https://github.com/fastapi/sqlmodel/issues/123",
+              "pull_request": null
+            }
+          },
+          {
+            "tool": "fetch_url",
+            "args": {
+              "url": "https://api.github.com/repos/tiangolo/sqlmodel/git/trees/HEAD?recursive=1"
+            },
+            "result": "314 files"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 5241,
+          "output_tokens_est": 4615,
+          "total_tokens_est": 9856
+        },
+        "timestamp": "2026-05-18T22:19:25.818178"
+      },
+      "report_snippet": "**Summary**\nThe issue is a question regarding the best practice for managing the `engine` instance and `session` creation in SQLModel applications, specifically asking if there's a built-in singleton solution.\n\n**Analysis**\nThis issue is classified as a \"question\" based on its existing label and con",
+      "elapsed_s": 31.15,
+      "error": null,
+      "predicted_classification": null
+    },
+    {
+      "task_id": "T030",
+      "category": "should_refuse",
+      "type": "out_of_scope",
+      "score": 3,
+      "max_points": 3,
+      "passed": true,
+      "reasons": [],
+      "demerits": [],
+      "trajectory": {
+        "run_id": "e6ae7203-c5dc-410c-86a7-c9ef33c7edd3",
+        "issue_url": "https://github.com/fastapi/fastapi/issues/1500#issuecomment-12345",
+        "launch_mode": null,
+        "task_hint": null,
+        "user_prompt": null,
+        "task_type": "classify",
+        "tool_calls": 2,
+        "grounding_passed": true,
+        "fact_check": {
+          "issue_numbers": [],
+          "usernames": [],
+          "file_paths": [],
+          "urls": [],
+          "invented": [],
+          "total_facts": 0,
+          "grounded_facts": 0,
+          "facts_grounded_rate": null,
+          "passed": true
+        },
+        "duration_s": 21.16,
+        "error_count": 0,
+        "loop_count": 0,
+        "tool_results": [
+          {
+            "tool": "fetch_github_issue",
+            "args": {
+              "url": "https://github.com/fastapi/fastapi/issues/1500#issuecomment-12345"
+            },
+            "result": {
+              "number": 1500,
+              "title": "Add Chinese translation for query-params-str-validations.md",
+              "body": "@Dustyposa @RunningIkkyu @phy25 Please take a look.",
+              "state": "closed",
+              "labels": [
+                {
+                  "name": "lang-all"
+                },
+                {
+                  "name": "lang-zh"
+                }
+              ],
+              "user": {
+                "login": "waynerv"
+              },
+              "created_at": "2020-06-02T03:05:57Z",
+              "updated_at": "2020-06-13T01:02:03Z",
+              "closed_at": "2020-06-12T22:53:01Z",
+              "comments": 2,
+              "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/1500/comments",
+              "html_url": "https://github.com/fastapi/fastapi/pull/1500",
+              "pull_request": {
+                "url": "https://api.github.com/repos/fastapi/fastapi/pulls/1500",
+                "html_url": "https://github.com/fastapi/fastapi/pull/1500",
+                "diff_url": "https://github.com/fastapi/fastapi/pull/1500.diff",
+                "patch_url": "https://github.com/fastapi/fastapi/pull/1500.patch",
+                "merged_at": "2020-06-12T22:53:01Z"
+              }
+            }
+          },
+          {
+            "tool": "save_triage_note",
+            "args": {
+              "issue_url": "https://github.com/fastapi/fastapi/issues/1500#issuecomment-12345"
+            },
+            "result": "saved"
+          }
+        ],
+        "token_usage_est": {
+          "input_tokens_est": 3280,
+          "output_tokens_est": 3015,
+          "total_tokens_est": 6295
+        },
+        "timestamp": "2026-05-18T22:19:56.977203"
+      },
+      "report_snippet": "**Summary**\nThis issue requested the addition of a Chinese translation for the `query-params-str-validations.md` documentation file.\n\n**Analysis**\nThe issue, identified as number 1500, is classified as a documentation task. Its title, \"Add Chinese translation for query-params-str-validations.md\", ex",
+      "elapsed_s": 21.16,
+      "error": null,
+      "predicted_classification": "documentation"
+    }
+  ],
+  "error_tasks": 0,
+  "grounding": {
+    "passed_true": 24,
+    "passed_false": 6,
+    "unknown": 0,
+    "pass_rate_decided": 0.8
+  },
+  "token_usage_est_total": {
+    "input_tokens": 127019,
+    "output_tokens": 95436,
+    "total_tokens": 222455
+  },
+  "triage_metrics": {
+    "non_crash_tasks": 30,
+    "perfect_tasks": 17,
+    "perfect_rate": 0.567,
+    "score_histogram": {
+      "0": 1,
+      "3": 17,
+      "1": 4,
+      "2": 8
+    },
+    "by_task_type": {
+      "classify": {
+        "pass": 6,
+        "total": 10,
+        "points": 21,
+        "max": 30
+      },
+      "duplicate": {
+        "pass": 4,
+        "total": 5,
+        "points": 12,
+        "max": 15
+      },
+      "code_area": {
+        "pass": 5,
+        "total": 5,
+        "points": 12,
+        "max": 15
+      },
+      "stale": {
+        "pass": 4,
+        "total": 4,
+        "points": 12,
+        "max": 12
+      },
+      "any": {
+        "pass": 3,
+        "total": 3,
+        "points": 6,
+        "max": 9
+      },
+      "out_of_scope": {
+        "pass": 3,
+        "total": 3,
+        "points": 8,
+        "max": 9
+      }
+    },
+    "grounding_when_required": {
+      "tasks": 11,
+      "grounded": 11,
+      "pass_rate": 1.0
+    },
+    "passed_but_grounding_failed": 0,
+    "rubric_signals": {
+      "avg_reasons_per_task": 0.73,
+      "avg_demerits_per_task": 0.47,
+      "total_pass_reasons": 22,
+      "total_demerits": 14
+    },
+    "crashed_tasks": 0,
+    "latency_s": {
+      "mean": 21.83,
+      "p50": 25.29,
+      "p90": 31.64,
+      "p95": 34.19,
+      "min": 1.0,
+      "max": 44.99,
+      "stdev": 11.78,
+      "tasks": 30
+    },
+    "fact_check_summary": {
+      "tasks_with_facts": 13,
+      "total_facts_extracted": 31,
+      "total_grounded": 31,
+      "total_invented": 0,
+      "invented_by_kind": {
+        "issue_numbers": 0,
+        "usernames": 0,
+        "file_paths": 0,
+        "urls": 0
+      },
+      "pass": 13,
+      "fail": 0,
+      "avg_facts_grounded_rate": 1.0,
+      "overall_grounded_rate": 1.0,
+      "invented_examples": []
+    },
+    "conditional_pass": {
+      "must_search": {
+        "tasks": 4,
+        "pass": 3,
+        "rate": 0.75
+      },
+      "type_correct_rubric": {
+        "tasks": 6,
+        "pass": 2,
+        "rate": 0.333
+      }
+    },
+    "type_confusion_matrix": [
+      {
+        "gold": "bug",
+        "predicted": "documentation",
+        "count": 1
+      },
+      {
+        "gold": "bug+performance",
+        "predicted": "question",
+        "count": 1
+      },
+      {
+        "gold": "bug+security",
+        "predicted": "bug",
+        "count": 1
+      },
+      {
+        "gold": "docs+documentation",
+        "predicted": "question",
+        "count": 1
+      },
+      {
+        "gold": "feature",
+        "predicted": "?",
+        "count": 1
+      },
+      {
+        "gold": "question",
+        "predicted": "?",
+        "count": 1
+      }
+    ],
+    "grounding_vs_score": {
+      "n_grounding_true": 24,
+      "mean_score_grounding_true": 2.46,
+      "n_grounding_false": 6,
+      "mean_score_grounding_false": 2.0,
+      "score_histogram_when_grounding_false": {
+        "2": 6
+      },
+      "subset_grounding_required_only": {
+        "n_true": 11,
+        "mean_true": 1.91,
+        "n_false": 0,
+        "mean_false": null
+      }
+    }
+  }
+}

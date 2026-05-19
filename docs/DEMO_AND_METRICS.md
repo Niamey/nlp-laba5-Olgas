@@ -1,5 +1,11 @@
 # Демо та метрики (захист / доповідь)
 
+**Детальна документація по коду** (граф, скоринг, усі метрики, посилання на файли/рядки):  
+→ [CODE_DOCUMENTATION_UA.md](./CODE_DOCUMENTATION_UA.md)
+
+**Опис змін: розширені метрики** (що додано, як рахуються, де в коді):  
+→ [ROZSHYRENI_METRYKY_ZMINY_UA.md](./ROZSHYRENI_METRYKY_ZMINY_UA.md)
+
 ## 1. Два типи MCP
 
 | Тип | Ім’я в клієнті | Призначення |
@@ -26,8 +32,6 @@ python scripts/mcp_inventory.py
 Скрипт піднімає ті самі MCP, що й `main.py`, і для кожного сервера друкує **назву тула + docstring** з MCP.
 
 ## 3. Демо: референс → свій issue
-
-Чернетка сценарію з конкретними тікетами (T001, T002, …) і що на кожному кроці показати: **[DEMO_TICKETS_UA.md](DEMO_TICKETS_UA.md)**.
 
 **Референс (проєктний приклад):**
 
@@ -61,10 +65,23 @@ python main.py --url "https://github.com/ORG/REPO/issues/N" --hint duplicate --n
 python main.py --eval --output trajectories
 ```
 
+З **користувацьким промптом** на весь eval (або лише кілька задач):
+
+```bash
+python main.py --eval --no-hil --prompt "Знайди схожі issues, чи це дублікат"
+python main.py --eval --prompt-file prompts/duplicate.txt --tasks T002 T011
+```
+
+Один issue з промптом (як раніше):
+
+```bash
+python main.py --url "https://github.com/fastapi/fastapi/issues/1663" --no-hil --prompt "…"
+```
+
 Після завершення:
 
-- зведення в **`trajectories/summary.json`** (`score_pct`, `pass_rate`, `avg_latency_s`, `avg_tool_calls`, `by_category`, `tool_usage`, а також **`grounding`**, **`token_usage_est_total`**, **`error_tasks`**);
-- друк у консолі блоку **EVALUATION COMPLETE** (ті самі метрики + grounding + токени + crash-и, якщо були).
+- зведення в **`trajectories/summary.json`** (`score_pct`, `pass_rate`, `avg_latency_s`, `avg_tool_calls`, `by_category`, `tool_usage`);
+- друк у консолі блоку **EVALUATION COMPLETE**.
 
 Перегляд summary у зручному вигляді:
 

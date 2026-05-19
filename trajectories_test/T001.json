@@ -1,0 +1,200 @@
+{
+  "task_id": "T001",
+  "category": "happy_path",
+  "type": "classify",
+  "score": 2,
+  "max_points": 3,
+  "passed": true,
+  "reasons": [
+    "PASS: Grounding check passed",
+    "PASS: Correct type detected (['bug'])"
+  ],
+  "demerits": [
+    "FAIL: Report must mention (substring): ['justification']"
+  ],
+  "trajectory": {
+    "run_id": "ffc64e8e-447d-49db-8b04-e5654aab5342",
+    "issue_url": "https://github.com/fastapi/fastapi/issues/10370",
+    "launch_mode": null,
+    "task_hint": null,
+    "user_prompt": null,
+    "task_type": "classify",
+    "tool_calls": 2,
+    "grounding_passed": true,
+    "fact_check": {
+      "issue_numbers": [],
+      "usernames": [],
+      "file_paths": [],
+      "urls": [],
+      "invented": [],
+      "total_facts": 0,
+      "grounded_facts": 0,
+      "facts_grounded_rate": null,
+      "passed": true
+    },
+    "duration_s": 22.96,
+    "error_count": 0,
+    "loop_count": 0,
+    "tool_results": [
+      {
+        "tool": "fetch_github_issue",
+        "args": {
+          "url": "https://github.com/fastapi/fastapi/issues/10370"
+        },
+        "result": {
+          "number": 10370,
+          "title": "\ud83d\ude80 Roadmap",
+          "body": "## Description\n\nThis is a tentative roadmap, I will update it as things evolve. Some things might be discarded, others might be added later. I didn't want to make it fully public as it could raise expectations, but it seems it would be more beneficial for the community to know all the ideas and objectives.\n\nWork on this is alternated (and sometimes mixed) with work on Typer, SQLModel, Asyncer, and others.\n\nAnswering questions, issues, and PRs is also intermixed with this, but as in some cases one of these features would solve several issues or questions, or potentially solve something done by one or more PRs, in many cases I focus on this a bit more than on answering specific issues, questions, PRs.\n\n## Other Tools\n\nFastAPI gets a lot of help from the underlying tools and the people behind them, Pydantic, Starlette, Uvicorn. A lot of the work done there reflects in FastAPI, so they are helping FastAPI, in some way helping maintaining it too, because it's all connected.\n\n## Maintenance\n\nThe word \"maintenance\" or \"maintainer\" doesn't have a very strict definition, and it probably varies a lot from perspective.\n\nA lot of the work related to maintaining FastAPI is done by contributors, you can see the current team here: https://fastapi.tiangolo.com/fastapi-people/#team\n\nAnd you can learn about how the project is managed here: https://fastapi.tiangolo.com/management/\n\nI also receive a lot of help from others like the FastAPI Experts: https://fastapi.tiangolo.com/fastapi-people/#fastapi-experts\n\nA lot of the maintenance work is done by this amazing community.\n\nIf I suddenly died being hit by a bus, there are already mechanisms in place for code inheritance, there are others with GitHub rights to take over, etc. but I have requested to still review each PR myself.\n\nYou can help me ensure each existing PR is in shape (has tests, solves the problem, etc.). Make sure you filter out the translation PRs (most of them) unless you speak the language and can review them.\n\n## Security\n\nWhen there are security issues, those are handled with the highest priority, normally involving all the projects and the people from them (FastAPI, Starlette, Pydantic, Uvicorn). Those are normally not handled in issues and PRs but in emails, it's not public until the security disclosure is made, in most cases (always, up to now) with the version that fixes them.\n\n## Roadmap\n\nNow, here's the current high-level tentative roadmap:\n\n- [x] Code reference, for functions, classes, parameters, etc. (https://github.com/tiangolo/fastapi/pull/10392)\n    * This required additional tooling and methods that didn't exist before.\n- [x] Pydantic v2 used for serialization (increasing performance).\n- [ ] Pydantic v2 used for parsing (increasing performance).\n- [x] Upgrade Starlette.\n- [x] FastAPI CLI\n- [x] Explore supporting Pydantic v1 and v2 on the same app (https://github.com/fastapi/fastapi/pull/14168).\n- [ ] Refactor routers, to re-use router instances instead of cloning path operations. This will allow several things like:\n    * Middlewares per router.\n    * Custom router classes.\n    * Dependencies per router, including for handling 404 (replacing most of the middleware functionality).\n- [x] Support for Pydantic models for `Query()`, `Form()`, etc.\n\nProbably similar to:\n\n```python\nclass Common(BaseModel):\n    token: str\n    skip: int = 0\n    limit: int = 100\n\n\n@app.get(\"/items/\")\ndef read_items(commons: Annotated[Common, Query()]):\n    ...\n```\n\n- [ ] Additional security and authentication tools to simplify common tasks.\n    * Auth2 with a third party.\n    * Buildling an OAuth2 single sign-on server.\n    * Cookie-based auth.\n    * More docs for Bearer tokens.\n- [ ] Improved dependency overrides for testing.\n- [x] Clearer server errors and tracebacks (https://github.com/fastapi/fastapi/pull/14306).\n- [ ] Docs for liveness and readiness for Kubernetes and others.\n- [ ] Customization of parsing and serialization (to support more than JSON).\n- [ ] Errors based on [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html).\n- [ ] Refactors and simplifications of internal code.\n- [ ] Improved lifespan support/API.\n- [ ] Improved middleware support/API.\n- [ ] Updated SQL tutorials (sync and async) based on SQLModel.\n- [ ] New NoSQL tutorial.\n- [x] Refactor for dependencies, ~end before response~ (this was done a while ago, and now it's being reverted as it would break streaming responses, but several things were fixed along the way).\n- [ ] Performance optimizations.\n- [ ] Experiments with internal batch processing.\n    * E.g. for batch ML inference in the same app.\n- [x] Support for both Python v1 and v2 at the same time to make migrations easier: https://fastapi.tiangolo.com/how-to/migrate-from-pydantic-v1-to-pydantic-v2/\n- [x] Drop support for Python versions that already reached End of Life, as the time of writing, Python 3.8 and Python 3.9\n- [x] Drop support for Pydantic v1 (after adding support for having both v1 and v2 at the same time, so people have an easier way to migrate)\n\n## Note\n\nThis issue is just to keep anyone interested updated. For individual conversations, comments, requests, questions, please create a separate discussion question. Otherwise, we would end up with a single issue to cover everything and that's not the idea. \ud83d\ude05",
+          "state": "open",
+          "labels": [],
+          "user": {
+            "login": "tiangolo"
+          },
+          "created_at": "2023-10-02T21:54:54Z",
+          "updated_at": "2026-02-22T17:19:27Z",
+          "closed_at": null,
+          "comments": 5,
+          "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/10370/comments",
+          "html_url": "https://github.com/fastapi/fastapi/issues/10370",
+          "pull_request": null
+        }
+      },
+      {
+        "tool": "save_triage_note",
+        "args": {
+          "issue_url": "https://github.com/fastapi/fastapi/issues/10370"
+        },
+        "result": "saved"
+      }
+    ],
+    "message_trace": [
+      {
+        "type": "SystemMessage",
+        "content_preview": "You are an expert GitHub issue triage agent. Your job is to:\n1. Analyze GitHub issues accurately and systematically\n2. Always base your conclusions on actual evidence from the issue content\n3. Never guess \u2014 if information is missing, say so explicitly\n4. Be concise and structured in your responses\n\nWhen triaging:\n- For DUPLICATE detection: look for identical error messages, similar reproduction..."
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Parsed issue: fastapi/fastapi#10370\nTask type from hint: to be determined after fetch"
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Fetched issue #10370: '\ud83d\ude80 Roadmap'\nState: open | Labels: [] | Comments: 5"
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Plan created:\nTask type: classify (The issue describes a project roadmap and maintenance strategy, which doesn't fit as a bug, feature, or question, nor is it a duplicate or stale issue. Therefore, it needs general classification to assign appropriate labels.)\nSteps: Review the issue content to fully understand the scope and specific points of the roadmap and maintenance discussion. \u2192 Identify ...",
+        "response_metadata": {
+          "prompt_feedback": {
+            "block_reason": 0,
+            "safety_ratings": []
+          },
+          "finish_reason": "STOP",
+          "model_name": "gemini-2.5-flash",
+          "safety_ratings": [],
+          "model_provider": "google_genai"
+        },
+        "usage_metadata": {
+          "input_tokens": 1099,
+          "output_tokens": 933,
+          "total_tokens": 2032,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 735
+          }
+        }
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Classification: {\n  \"type\": \"documentation\",\n  \"priority\": \"low\",\n  \"confidence\": \"high\",\n  \"suggested_labels\": [\n    \"roadmap\",\n    \"discussion\",\n    \"meta\"\n  ],\n  \"justification\": \"The issue title is '\\ud83d\\ude80 Roadmap' and the body explicitly states 'This is a tentative roadmap, I will update it as things evolve.' and 'it would be more beneficial for the community to know all the ideas an...",
+        "response_metadata": {
+          "prompt_feedback": {
+            "block_reason": 0,
+            "safety_ratings": []
+          },
+          "finish_reason": "STOP",
+          "model_name": "gemini-2.5-flash",
+          "safety_ratings": [],
+          "model_provider": "google_genai"
+        },
+        "usage_metadata": {
+          "input_tokens": 712,
+          "output_tokens": 902,
+          "total_tokens": 1614,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 758
+          }
+        }
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Draft report generated (833 chars)",
+        "response_metadata": {
+          "prompt_feedback": {
+            "block_reason": 0,
+            "safety_ratings": []
+          },
+          "finish_reason": "STOP",
+          "model_name": "gemini-2.5-flash",
+          "safety_ratings": [],
+          "model_provider": "google_genai"
+        },
+        "usage_metadata": {
+          "input_tokens": 1175,
+          "output_tokens": 460,
+          "total_tokens": 1635,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 294
+          }
+        }
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Grounding validation PASSED; fact_check: no checkable facts in report",
+        "response_metadata": {
+          "prompt_feedback": {
+            "block_reason": 0,
+            "safety_ratings": []
+          },
+          "finish_reason": "STOP",
+          "model_name": "gemini-2.5-flash",
+          "safety_ratings": [],
+          "model_provider": "google_genai"
+        },
+        "usage_metadata": {
+          "input_tokens": 3943,
+          "output_tokens": 833,
+          "total_tokens": 4776,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 785
+          }
+        }
+      },
+      {
+        "type": "AIMessage",
+        "content_preview": "Report complete and grounded \u2014 ready to deliver"
+      }
+    ],
+    "token_usage_est": {
+      "input_tokens_est": 6929,
+      "output_tokens_est": 3128,
+      "total_tokens_est": 10057
+    },
+    "timestamp": "2026-05-18T12:06:41.330005"
+  },
+  "report_snippet": "**Summary**\nThis issue serves as a tentative roadmap for the FastAPI project, outlining future plans, project management, and maintenance strategies.\n\n**Analysis**\nThe issue is classified as a documentation type. The title \"\ud83d\ude80 Roadmap\" and the body explicitly state, \"This is a tentative roadmap, I wi",
+  "elapsed_s": 22.96,
+  "error": null,
+  "predicted_classification": "documentation",
+  "full_report": "**Summary**\nThis issue serves as a tentative roadmap for the FastAPI project, outlining future plans, project management, and maintenance strategies.\n\n**Analysis**\nThe issue is classified as a documentation type. The title \"\ud83d\ude80 Roadmap\" and the body explicitly state, \"This is a tentative roadmap, I will update it as things evolve.\" and \"it would be more beneficial for the community to know all the ideas and objectives.\" The content details the project's future direction, management approach, and maintenance, confirming it is not a bug report, feature request, or question. The classification has high confidence and low priority.\n\n**Recommendation**\nAcknowledge the roadmap and consider if further community discussion or input is desired for the outlined plans.\n\n**Labels**\nroadmap, discussion, meta, documentation, priority/low"
+}
